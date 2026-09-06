@@ -35,4 +35,25 @@ public class TrasferimentoDAO implements GenericProcedureDAO<Trasferimento>{
 
     }
 
+    public void restituzioneCopiaTrasferita(Object... params) throws DAOException {
+
+        try {
+            Connection conn = ConnectionFactory.getConnection();
+            CallableStatement cs = conn.prepareCall("{call restituzioneCopiaTrasferita(?,?,?)}");
+            cs.setString(1, (String) params[0]);    //Copia
+            cs.setDate(2, (Date) params[1]);        //DataRestituzione
+            cs.setString(3,(String) params[2]);     //Stato
+            System.out.println("prima di execute");
+            cs.execute();
+
+            System.out.println("fine procedure restituzioneCopiaTrasferita");
+        } catch (SQLException e) {
+            throw new DAOException("restituzioneCopiaTrasferita non correttamente avvenuta: " + e.getMessage());
+        }
+
+        //String Copia,LocalDate DataPrestito,String Utente,int DurataConsultazioneEspressa
+
+        //return new PrestitoUtente((String)params[0], ((Date)params[2]).toLocalDate(),(String)params[1],1);//valori messi a caso, sistemare
+    }
+
 }

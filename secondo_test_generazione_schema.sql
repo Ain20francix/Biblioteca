@@ -311,6 +311,38 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure restituzioneCopiaTrasferita
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `restituzioneCopiaTrasferita`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `restituzioneCopiaTrasferita` (in var_Copia CHAR(4), in var_DataRestituzione DATE, in var_Stato ENUM('Prestata a','Prestata da'))
+BEGIN
+
+    -- controlliamo che la copia sia effettivamente stata prestata ad/da una biblitoeca esterna
+    IF NOT EXISTS (SELECT 1 FROM `Trasferimenti` WHERE `Trasferimenti`.`Copia`=var_Copia AND `Trasferimenti`.`Stato`=var_Stato) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: non esiste unun  trasferimento relativo a tale copia.';
+    END IF;
+
+    -- controlliamo che non ci sia un prestito in corso con tale copia
+    IF EXISTS (SELECT 1 FROM `PrestitoUtente`, `Trasferimenti`, `Copia` WHERE `Copia`.`Etichetta`=`Trasferimenti`.`Copia` AND `Copia`.`Etichetta`=`PrestitoUtente`.`Copia` AND `PrestitoUtente`.`Copia`=`Trasferimenti`.`Copia` AND `PrestitoUtente`.`Copia`=var_Copia AND `Copia`.`Stato`='Disponibile' AND `Trasferimenti`.`Stato`=var_Stato AND `PrestitoUtente`.`DataRestituzione` IS NULL) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: risultata un prestito utente in corso associato a tale copia.';
+    END IF;
+
+    -- aggiornamento stato copia trasferita come restituita
+    UPDATE `Trasferimenti` SET `DataRestituzione`=var_DataRestituzione WHERE `Copia`=var_Copia AND `Stato`=var_Stato;
+
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure listaCopie
 -- -----------------------------------------------------
 
@@ -652,6 +684,7 @@ GRANT EXECUTE ON procedure `biblioteca`.`listaUtenti` TO 'bibliotecario'@'localh
 GRANT EXECUTE ON procedure `biblioteca`.`listaLibri` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'bibliotecario'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'bibliotecario'@'localhost';
 
 -- permessi amministratore
 GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'amministratore'@'localhost';

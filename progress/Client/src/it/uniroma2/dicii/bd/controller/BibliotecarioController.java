@@ -548,6 +548,49 @@ public class BibliotecarioController  implements Controller{
     }
 
     public void restituzioneCopiaTrasferita(){
-        throw new RuntimeException("Not implemented yet");
+
+        //bisogna agggiornare la data restituzione del prestito e rendere la copia nuovamente disponibile
+        String []parametri = {"Copia","indicare una delle seguenti opzioni:\n1)Copia trasferita ad una biblioteca\n2)Copia trasferita da una biblioteca"};
+        String[] valori = new String[parametri.length];
+        int arg=0;
+        boolean flag=false;
+        String temp="";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        while(arg<parametri.length) {
+            flag = false;
+            System.out.printf("Inserisci %s:", parametri[arg]);
+            try {
+                temp = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException("Errore di lettura input", e);
+            }
+
+            //Uscita nel caso si volesse interrompere l'operazione
+            if(temp.equals("Exit")){return;}
+
+            switch (arg) {
+                case 0:
+                    if(temp.length()!=4){
+                        System.out.println("Valore non valido, riprovare!\nL'etichetta della copia deve essere di 4 caratteri\n");
+                        arg--;
+                        flag=true;
+                    }
+                    break;
+            }
+            if(!flag){
+                valori[arg] = temp;
+            }
+            arg++;
+        }
+
+        try{
+            if(temp.equals("1")){
+                new TrasferimentoDAO().restituzioneCopiaTrasferita(valori[0],java.sql.Date.valueOf(LocalDate.now()),"Prestata a");
+            }else{
+                new TrasferimentoDAO().restituzioneCopiaTrasferita(valori[0],java.sql.Date.valueOf(LocalDate.now()),"Prestata da");
+            }
+        }catch(DAOException e) {
+            System.out.println("Restituzione copia trasferita non completata con successo\n"+e.getMessage());
+        }
     }
 }
