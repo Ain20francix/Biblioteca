@@ -666,6 +666,15 @@ GRANT USAGE ON *.* TO 'bibliotecario'@'localhost';
 SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 CREATE USER 'bibliotecario'@'localhost' IDENTIFIED BY 'bibliotecario';
 
+GRANT EXECUTE ON procedure `biblioteca`.`login` TO 'bibliotecario'@'localhost';
+SET SQL_MODE = '';
+GRANT USAGE ON *.* TO 'responsabile'@'localhost';
+ DROP USER 'responsabile'@'localhost';
+SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+CREATE USER 'responsabile'@'localhost' IDENTIFIED BY 'responsabile';
+GRANT EXECUTE ON procedure `biblioteca`.`login` TO 'responsabile'@'localhost';
+
+
 SET SQL_MODE = '';
 GRANT USAGE ON *.* TO 'amministratore'@'localhost'; -- CANCELLARE ASSOLUTAMENTE QUESTA RIGA
  DROP USER 'amministratore'@'localhost';
@@ -686,8 +695,12 @@ GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'bibliotecario'@'loc
 GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'bibliotecario'@'localhost';
 
+-- permessi responsabile
+GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'responsabile'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'responsabile'@'localhost';
+
 -- permessi amministratore
-GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'amministratore'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'amministratore'@'localhost'; -- CANCELLARE ASSOLUTAMENTE QUESTA RIGA
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

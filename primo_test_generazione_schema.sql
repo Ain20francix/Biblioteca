@@ -194,9 +194,9 @@ DROP PROCEDURE IF EXISTS `restituzioneCopiaUtente`;
 
 DELIMITER $$
 
-CREATE PROCEDURE `restituzioneCopiaUtente` (in var_Copia CHAR(4),in var_Utente CHAR(16),in var_DataRestituzione DATE)
+CREATE PROCEDURE `restituzioneCopiaUtente` (in var_Copia CHAR(4),in var_DataRestituzione DATE)
 BEGIN
-    UPDATE `PrestitoUtente` SET `DataRestituzione` = var_DataRestituzione WHERE `Copia` = var_Copia AND `Utente` = var_Utente AND `DataRestituzione` IS NULL;
+    UPDATE `PrestitoUtente` SET `DataRestituzione` = var_DataRestituzione WHERE `Copia` = var_Copia AND `DataRestituzione` IS NULL;
 
     -- poi aggiorno lo stato della copia per renderla disponibile
     UPDATE `Copia` SET `Stato` = 'Disponibile' WHERE `Etichetta` = var_Copia;
@@ -262,30 +262,85 @@ DELIMITER $$
 CREATE PROCEDURE `trasferimentoCopia` (in var_Copia CHAR(4),in var_DataCessione DATE,in var_Biblioteca CHAR(100),in var_Stato ENUM('Prestata a','Prestata da'))
 BEGIN
 
-    -- registrazione trasferimento
-    INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES (var_Copia,var_DataCessione,var_Biblioteca,NULL,var_Stato);
+    DECLARE var_stato_copia CHAR(30);
 
-    -- la copia e stata inserita prima di chiamare questa stored procedure quindi il suo stato = "disponibile"
+    -- controllo che la copia da trasferire esista
+    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = var_Copia) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: la copia non esiste.';
+    END IF;
 
     -- aggiornamento stato copia
     IF var_Stato = 'Prestata a' THEN
-            UPDATE `Copia` SET `Stato` = 'Prestata',`NumeroRipiano`= NULL,`NumeroScaffale`= NULL WHERE `Etichetta` = var_Copia;
-    END IF;
+            -- controlliamo che la copia che si vuole trasferire sia disponibile
+            SELECT `Stato` INTO var_stato_copia FROM `Copia` WHERE `Etichetta` = var_Copia;
+            IF var_stato_copia != 'Disponibile' THEN
+                SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Errore Trigger: copia non disponibile per il trasferimento.';
+            END IF;
 
-    IF var_Stato = 'Prestata da' THEN
-            UPDATE `Copia` SET `Stato` = 'Disponibile' WHERE `Etichetta` = var_Copia;
-    ELSE
+            UPDATE `Copia` SET `Stato` = 'Prestata',`NumeroRipiano`= NULL,`NumeroScaffale`= NULL WHERE `Etichetta` = var_Copia;
+    ELSEIF var_Stato != 'Prestata da' THEN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Errore Trigger: tipo di trasferimento non supportato.';
     END IF;
 
-
-
+    -- registrazione trasferimento
+    INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES (var_Copia,var_DataCessione,var_Biblioteca,NULL,var_Stato);
 
 END$$
 
 DELIMITER ;
 
+-- -----------------------------------------------------
+-- procedure reportCopieNonRestituite
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `reportCopieNonRestituite`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `reportCopieNonRestituite` ()
+BEGIN
+
+    SELECT `Etichetta` FROM `Copia`, `PrestitoUtente` WHERE `Copia`.`Etichetta`=`PrestitoUtente`.`Copia` AND `PrestitoUtente`.`DataRestituzione` IS NULL;
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure restituzioneCopiaTrasferita
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `restituzioneCopiaTrasferita`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `restituzioneCopiaTrasferita` (in var_Copia CHAR(4), in var_DataRestituzione DATE, in var_Stato ENUM('Prestata a','Prestata da'))
+BEGIN
+
+    -- controlliamo che la copia sia effettivamente stata prestata ad/da una biblitoeca esterna
+    IF NOT EXISTS (SELECT 1 FROM `Trasferimenti` WHERE `Trasferimenti`.`Copia`=var_Copia AND `Trasferimenti`.`Stato`=var_Stato) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: non esiste unun  trasferimento relativo a tale copia.';
+    END IF;
+
+    -- controlliamo che non ci sia un prestito in corso con tale copia
+    IF EXISTS (SELECT 1 FROM `PrestitoUtente`, `Trasferimenti`, `Copia` WHERE `Copia`.`Etichetta`=`Trasferimenti`.`Copia` AND `Copia`.`Etichetta`=`PrestitoUtente`.`Copia` AND `PrestitoUtente`.`Copia`=`Trasferimenti`.`Copia` AND `PrestitoUtente`.`Copia`=var_Copia AND `Copia`.`Stato`='Disponibile' AND `Trasferimenti`.`Stato`=var_Stato AND `PrestitoUtente`.`DataRestituzione` IS NULL) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: risultata un prestito utente in corso associato a tale copia.';
+    END IF;
+
+    -- aggiornamento stato copia trasferita come restituita
+    UPDATE `Trasferimenti` SET `DataRestituzione`=var_DataRestituzione WHERE `Copia`=var_Copia AND `Stato`=var_Stato;
+
+
+END$$
+
+DELIMITER ;
 
 -- -----------------------------------------------------
 -- procedure listaCopie
@@ -340,145 +395,6 @@ BEGIN
 END$$
 
 DELIMITER ;
-
--- -----------------------------------------------------
--- Trigger per registraPrestitoUtente
--- -----------------------------------------------------
-
-USE `biblioteca`;
-DROP TRIGGER IF EXISTS `biblioteca`.`before_registraPrestitoUtente`;
-
-DELIMITER $$
-
-CREATE TRIGGER `biblioteca`.`before_registraPrestitoUtente` BEFORE INSERT ON `PrestitoUtente` FOR EACH ROW
-BEGIN
-
-    -- controlliamo che la copia esista e sia disponibile
-
-    DECLARE var_stato CHAR(30);
-
-    SELECT `Stato` INTO var_stato FROM `Copia` WHERE `Etichetta` = NEW.Copia;
-
-    IF var_stato != 'Disponibile' THEN
-    SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: copia non disponibile.';
-    END IF;
-
-    -- si considera il fatto che dopo che viene inserita la nuova  copia, prima di poter essere registrato il trasferimento
-    -- il bibliotecario puo assentarsi, la copia puo essere prestata e dopo viene registrato il trasferimento quindi
-    -- il suo stato puo essere sia disponibile sia prestata
-    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = NEW.Copia AND `Stato`= 'Disponibile' OR `Stato`= 'Prestata') THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: la copia non esiste.';
-    END IF;
-
-    -- controlliamo che l'utente esista
-    IF NOT EXISTS (SELECT 1 FROM `Utente` WHERE `CF` = NEW.Utente) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: Il codice fiscale utente inserito, non esiste.';
-    END IF;
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- Trigger per restituzioneCopiaUtente
--- -----------------------------------------------------
-
-USE `biblioteca`;
-DROP TRIGGER IF EXISTS `biblioteca`.`before_restituzioneCopiaUtente`;
-
-DELIMITER $$
-
-CREATE TRIGGER `biblioteca`.`before_restituzioneCopiaUtente` BEFORE UPDATE ON `PrestitoUtente` FOR EACH ROW
-BEGIN
-    -- controlliamo che la copia esista e sia disponibile
-    IF NOT EXISTS (SELECT 1 FROM `PrestitoUtente` WHERE `Copia` = NEW.Copia AND `Utente`= NEW.Utente AND DataRestituzione IS NULL) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: prestito inesistente.';
-    END IF;
-
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- Trigger per inserisciCopia
--- -----------------------------------------------------
-
-USE `biblioteca`;
-DROP TRIGGER IF EXISTS `biblioteca`.`before_inserisciCopia`;
-
-DELIMITER $$
-
-CREATE TRIGGER `biblioteca`.`before_inserisciCopia` BEFORE INSERT ON `Copia` FOR EACH ROW
-BEGIN
-    -- controlliamo che la copia che si vuole inserire non esista ancora
-    IF EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = NEW.Etichetta) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: copia esistente.';
-    END IF;
-
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- Trigger per trasferimentoCopia
--- -----------------------------------------------------
-
-USE `biblioteca`;
-DROP TRIGGER IF EXISTS `biblioteca`.`before_trasferimentoCopia`;
-
-DELIMITER $$
-
-CREATE TRIGGER `biblioteca`.`before_trasferimentoCopia` BEFORE INSERT ON `Trasferimenti` FOR EACH ROW
-BEGIN
-    -- controlliamo che la copia che si vuole tarsferire esista e sia disponibile
-    DECLARE var_stato CHAR(30);
-
-    SELECT `Stato` INTO var_stato FROM `Copia` WHERE `Etichetta` = NEW.Copia;
-
-    IF var_stato != 'Disponibile' THEN
-    SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: copia non disponibile per il trasferimento.';
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = NEW.Copia AND `Stato`= 'Disponibile') THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: la copia non esiste.';
-    END IF;
-
-    /*
-
-    NON NECESSARIO
-
-
-    -- controlliamo che la copia che si vuole prestare non sia relativa ad un precedente trasferimento da una biblioteca esterna
-
-    IF EXISTS (SELECT 1 FROM `Copia`, Trasferimenti WHERE Copia.Etichetta=Trasferimenti.Copia AND Trasferimenti.Stato='Prestata da') THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: si sta provando a trasferire una copia proveniente da un trasferimento da una biblioteca esterna.';
-    END IF;*/
-
-    -- controlliamo che la biblioteca esista
-    IF NOT EXISTS (SELECT 1 FROM `Biblioteca` WHERE `Indirizzo` = NEW.Biblioteca) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: indirizzo della biblioteca inserita inesistente.';
-    END IF;
-
-END$$
-
-DELIMITER ;
-
--- -----------------------------------------------------
--- Trigger per regole aziendali
--- -----------------------------------------------------
-
--- da implementare il trigger per evitare che un utente possa prendere in prestito lo stesso giorno più di 3 copie dello stesso libro
-
-
-
 
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Autore`
@@ -578,7 +494,7 @@ INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','32815567
 
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0004','2026-05-19','NRMSFN01A41Z133Y',NULL,'1');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0005','2026-07-14','SMTSRA00E65Z100L','2026-08-28','3');
-INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0011','2026-07-14','AGSRWQ78G56D211H','2026-03-21','2');
+INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0011','2026-07-14','AGSRWQ78G56D211H',NULL,'2');
 
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Biblioteca`
@@ -600,6 +516,7 @@ INSERT INTO `Biblioteca`(`Indirizzo`, `Nome`, `OrarioApertura`) VALUES ('Via Rom
 -- Data for table `biblioteca`.`Trasferimenti`
 -- -----------------------------------------------------
 INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES ('0008','2024-08-16','Via dei Tre Pupazzi',NULL,'Prestata a');
+INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES ('0011','2026-12-02','Viale Angelico',NULL,'Prestata da');
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Ruoli`
 -- -----------------------------------------------------
@@ -610,6 +527,127 @@ INSERT INTO `Ruoli`(`username`, `password`, `ruolo`) VALUES ('utente2','18042a2d
 INSERT INTO `Ruoli`(`username`, `password`, `ruolo`) VALUES ('utente3','8928363f23ea4502106103c3ff78feef','responsabile');
 
 COMMIT;
+
+-- -----------------------------------------------------
+-- Trigger per registraPrestitoUtente
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP TRIGGER IF EXISTS `biblioteca`.`before_registraPrestitoUtente`;
+
+DELIMITER $$
+
+CREATE TRIGGER `biblioteca`.`before_registraPrestitoUtente` BEFORE INSERT ON `PrestitoUtente` FOR EACH ROW
+BEGIN
+
+    -- controlliamo che la copia esista
+    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = NEW.Copia) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: la copia non esiste.';
+    END IF;
+    -- controlliamo che la copia sia disponibile
+    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = NEW.Copia AND `Stato`= 'Disponibile') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: la copia risulta non disponibile.';
+    END IF;
+
+    -- controlliamo che l'utente esista
+    IF NOT EXISTS (SELECT 1 FROM `Utente` WHERE `CF` = NEW.Utente) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: Il codice fiscale utente inserito, non esiste.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- Trigger per restituzioneCopiaUtente
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP TRIGGER IF EXISTS `biblioteca`.`before_restituzioneCopiaUtente`;
+
+DELIMITER $$
+
+CREATE TRIGGER `biblioteca`.`before_restituzioneCopiaUtente` BEFORE UPDATE ON `PrestitoUtente` FOR EACH ROW
+BEGIN
+    -- controlliamo che la copia esista e sia disponibile
+    IF NOT EXISTS (SELECT 1 FROM `PrestitoUtente` WHERE `Copia` = NEW.Copia AND `Utente`= NEW.Utente AND DataRestituzione IS NULL) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: prestito inesistente.';
+    END IF;
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- Trigger per inserisciCopia
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP TRIGGER IF EXISTS `biblioteca`.`before_inserisciCopia`;
+
+DELIMITER $$
+
+CREATE TRIGGER `biblioteca`.`before_inserisciCopia` BEFORE INSERT ON `Copia` FOR EACH ROW
+BEGIN
+    -- controlliamo che la copia che si vuole inserire non esista ancora
+    IF EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = NEW.Etichetta) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: copia esistente.';
+    END IF;
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- Trigger per trasferimentoCopia
+-- -----------------------------------------------------
+
+/*USE `biblioteca`;
+DROP TRIGGER IF EXISTS `biblioteca`.`before_trasferimentoCopia`;
+
+DELIMITER $$
+
+CREATE TRIGGER `biblioteca`.`before_trasferimentoCopia` BEFORE INSERT ON `Trasferimenti` FOR EACH ROW
+BEGIN
+    -- controlliamo che la copia che si vuole tarsferire esista e sia disponibile
+    DECLARE var_stato CHAR(30);
+
+    SELECT `Stato` INTO var_stato FROM `Copia` WHERE `Etichetta` = NEW.Copia;
+
+    -- si considera il fatto che dopo che viene inserita la nuova copia, prima di poter essere registrato il trasferimento
+    -- il bibliotecario puo assentarsi, la copia puo essere prestata e dopo viene registrato il trasferimento quindi
+    -- il suo stato puo essere sia disponibile sia prestata
+
+    IF var_stato != 'Disponibile' THEN
+    SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: copia non disponibile per il trasferimento.';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = NEW.Copia AND `Stato`= 'Disponibile') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: la copia non esiste.';
+    END IF;
+
+    -- controlliamo che la biblioteca esista
+    IF NOT EXISTS (SELECT 1 FROM `Biblioteca` WHERE `Indirizzo` = NEW.Biblioteca) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: indirizzo della biblioteca inserita inesistente.';
+    END IF;
+
+END$$
+
+DELIMITER ;*/
+
+-- -----------------------------------------------------
+-- Trigger per regole aziendali
+-- -----------------------------------------------------
+
+-- da implementare il trigger per evitare che un utente possa prendere in prestito lo stesso giorno più di 3 copie dello stesso libro
+
 
 -- -----------------------------------------------------
 -- Users and privileges
@@ -628,6 +666,13 @@ GRANT USAGE ON *.* TO 'bibliotecario'@'localhost';
 SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 CREATE USER 'bibliotecario'@'localhost' IDENTIFIED BY 'bibliotecario';
 
+GRANT EXECUTE ON procedure `biblioteca`.`login` TO 'login'@'localhost';
+SET SQL_MODE = '';
+GRANT USAGE ON *.* TO 'responsabile'@'localhost';
+ DROP USER 'responsabile'@'localhost';
+SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+CREATE USER 'responsabile'@'localhost' IDENTIFIED BY 'responsabile';
+
 SET SQL_MODE = '';
 GRANT USAGE ON *.* TO 'amministratore'@'localhost'; -- CANCELLARE ASSOLUTAMENTE QUESTA RIGA
  DROP USER 'amministratore'@'localhost';
@@ -645,10 +690,15 @@ GRANT EXECUTE ON procedure `biblioteca`.`listaCopie` TO 'bibliotecario'@'localho
 GRANT EXECUTE ON procedure `biblioteca`.`listaUtenti` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`listaLibri` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'bibliotecario'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'bibliotecario'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'bibliotecario'@'localhost';
 
+-- permessi responsabile
+GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'responsabile'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'responsabile'@'localhost';
 
 -- permessi amministratore
-GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'amministratore'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'amministratore'@'localhost'; -- CANCELLARE ASSOLUTAMENTE QUESTA RIGA
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

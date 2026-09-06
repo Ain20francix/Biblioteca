@@ -16,7 +16,8 @@ public class ApplicationController implements Controller {
         }
 
         switch(cred.getRole()) {
-            case BIBLIOTECARIO -> new BibliotecarioController().start();
+            case BIBLIOTECARIO  -> new BibliotecarioController().start();
+            case RESPONSABILE   -> new ResponsabileController().start();
             case AMMINISTRATORE -> new AmministratoreController().start();
             default -> throw new RuntimeException("Invalid credentials");
         }

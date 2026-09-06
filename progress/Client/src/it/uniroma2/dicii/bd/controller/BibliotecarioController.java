@@ -37,9 +37,9 @@ public class BibliotecarioController  implements Controller{
                 case 1 -> registraUtente();
                 case 2 -> registraPrestitoUtente();
                 case 3 -> restituzioneCopia();
-                case 4 -> reportCopieNonRestituite();
+                case 4 -> reportCopieNonRestituite(); //togliere
                 case 5 -> inserisciCopia();
-                case 6 -> inserisciLibro();
+                case 6 -> inserisciLibro(); //togliere
                 case 7 -> trasferimentoCopia();
                 case 8 -> restituzioneCopiaTrasferita();
                 case 9 -> stampaListaCopie();
