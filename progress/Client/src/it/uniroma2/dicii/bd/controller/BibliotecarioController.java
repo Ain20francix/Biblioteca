@@ -34,18 +34,18 @@ public class BibliotecarioController  implements Controller{
             }
 
             switch(choice) {
-                case 0 -> registraUtente();
-                case 1 -> registraPrestitoUtente();
-                case 2 -> restituzioneCopia();
-                case 3 -> reportCopieNonRestituite();
-                case 4 -> inserisciCopia();
-                case 5 -> inserisciLibro();
-                case 6 -> trasferimentoCopia();
-                case 7 -> restituzioneCopiaTrasferita();
-                case 8 -> stampaListaCopie();
-                case 9 -> stampaListaLibri();
-                case 10 -> stampaListaUtenti();
-                case 11 -> System.exit(0);
+                case 1 -> registraUtente();
+                case 2 -> registraPrestitoUtente();
+                case 3 -> restituzioneCopia();
+                case 4 -> reportCopieNonRestituite();
+                case 5 -> inserisciCopia();
+                case 6 -> inserisciLibro();
+                case 7 -> trasferimentoCopia();
+                case 8 -> restituzioneCopiaTrasferita();
+                case 9 -> stampaListaCopie();
+                case 10 -> stampaListaLibri();
+                case 11 -> stampaListaUtenti();
+                case 12 -> System.exit(0);
                 default -> throw new RuntimeException("Invalid choice");
 
             }
@@ -77,7 +77,6 @@ public class BibliotecarioController  implements Controller{
         }
 
     }
-
 
     public void registraUtente() {
 
@@ -249,9 +248,8 @@ public class BibliotecarioController  implements Controller{
     public void restituzioneCopia(){
 
         //bisogna agggiornare la data restituzione del prestito e rendere la copia nuovamente disponibile
-        String []parametri = {"Copia", "Utente"};
+        String []parametri = {"Copia"};
         String[] valori = new String[parametri.length];
-        PrestitoUtente pu;
         int arg=0;
         boolean flag=false;
         String temp="";
@@ -276,13 +274,6 @@ public class BibliotecarioController  implements Controller{
                         flag=true;
                     }
                     break;
-                case 1:
-                    if(temp.length()!=16){
-                        System.out.println("Valore non valido, riprovare!\nIl codice fiscale dell'utente deve essere composto da 16 caratteri\n");
-                        arg--;
-                        flag=true;
-                    }
-                    break;
             }
             if(!flag){
                 valori[arg] = temp;
@@ -290,9 +281,9 @@ public class BibliotecarioController  implements Controller{
             arg++;
         }
 
-            //(Copia,Utente,DataRestituzione)
+            //(Copia,DataRestituzione)
             try {
-                pu = new PrestitoUtenteDAO().restituzioneCopiaUtente(valori[0],valori[1],java.sql.Date.valueOf(LocalDate.now()));
+                new PrestitoUtenteDAO().restituzioneCopiaUtente(valori[0],java.sql.Date.valueOf(LocalDate.now()));
                 System.out.println("RRestituzione copia correttamente avvenuta\n");
             }catch(DAOException e){
                 System.out.println("Operazione non riuscita\n");
@@ -302,7 +293,11 @@ public class BibliotecarioController  implements Controller{
 
     public void reportCopieNonRestituite(){
 
-        throw new RuntimeException("Not implemented yet");
+        try{
+            new CopieDAO().reportCopieNonRestituite();
+        }catch(DAOException e) {
+            System.out.println("Stampa lista copie non restituite, non completata con successo: \n"+e.getMessage());
+        }
     }
 
     public String inserisciCopia(){
@@ -551,6 +546,7 @@ public class BibliotecarioController  implements Controller{
 
 
     }
+
     public void restituzioneCopiaTrasferita(){
         throw new RuntimeException("Not implemented yet");
     }

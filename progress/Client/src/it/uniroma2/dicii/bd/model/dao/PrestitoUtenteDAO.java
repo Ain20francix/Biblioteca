@@ -33,14 +33,13 @@ public class PrestitoUtenteDAO implements GenericProcedureDAO<PrestitoUtente>{
         return new PrestitoUtente((String)params[0], ((Date)params[1]).toLocalDate(),(String)params[2],(int)params[3]);
     }
 
-    public PrestitoUtente restituzioneCopiaUtente(Object... params) throws DAOException {
+    public void restituzioneCopiaUtente(Object... params) throws DAOException {
 
         try {
             Connection conn = ConnectionFactory.getConnection();
-            CallableStatement cs = conn.prepareCall("{call restituzioneCopiaUtente(?,?,?)}");
+            CallableStatement cs = conn.prepareCall("{call restituzioneCopiaUtente(?,?)}");
             cs.setString(1, (String) params[0]);    //Copia
-            cs.setString(2, (String) params[1]);    //Utente
-            cs.setDate(3, (Date) params[2]);        //DataRestituzione
+            cs.setDate(2, (Date) params[1]);        //DataRestituzione
 
             cs.execute();
 
@@ -52,6 +51,6 @@ public class PrestitoUtenteDAO implements GenericProcedureDAO<PrestitoUtente>{
 
         //String Copia,LocalDate DataPrestito,String Utente,int DurataConsultazioneEspressa
 
-        return new PrestitoUtente((String)params[0], ((Date)params[2]).toLocalDate(),(String)params[1],1);//valori messi a caso, sistemare
+        //return new PrestitoUtente((String)params[0], ((Date)params[2]).toLocalDate(),(String)params[1],1);//valori messi a caso, sistemare
     }
 }
