@@ -1,0 +1,32 @@
+Generi:{Giallo, Thriller,Fantasy,Fantascienza,Romanzo Storico,Romanzo Rosa, Horror, Avventura, Azione, Saggio, Autobiografia, Guida}
+Libri: 20.000
+Copie: 3* Libro : 60.000 (sono compresi sia le copie di proprietà della biblioteca sia di quelle esterne provenienti dai trasferimenti)
+Ripiani: 2.000 (30 libri per ripiano)
+Scaffali:200 (ogni scaffale ha 10 ripiani)
+Utenti in 40 anni: 30.000
+Utenti ATTIVI in 40 anni: ∑(x=1..8) (750 * x * 0,25) + 1.500 * (40-8) = 54.750
+Utenti pigri in 40 anni: ∑(x=1..8) (750 * x * 0,75) + 4.500 * (40-8)
+Numero Prestiti Utente in 40 anni contando utenti attivi e utenti pigri:
+6 × [ ∑(x=1..8) (750 * x * 0,25) + 1.500 * (40-8) ] + 3 × [ ∑(x=1..8) (750 * x * 0,75) + 4.500 * (40-8) ] = 328.500 + 492.750 = 821.250 arrotondiamo a 825.000
+
+OPERAZIONI (NON BANALI)
+
+Registrazione Utente
+Inserimento Libro
+Inserimento Copia
+Trasferimento Copia
+Registrazione Prestito Utente
+Aggiornamento Prestito Utente
+Disponibilità Copie
+Report Copie non restitute
+
+
+
+OPERAZIONI (BANALI)
+Aggiornamento posizione copie nella biblioteca
+Inserimento dati circuito biblioteche
+
+
+
+OSS.
+forse conviene non reificare la posizione di copia, cos' quando si inserisce una nuova copia si può subito scegliere se specificare o meno
