@@ -12,7 +12,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.sql.*;
 
-import static it.uniroma2.dicii.bd.model.dao.BookingListProcedureDAO.printResultsTable;
+import it.uniroma2.dicii.bd.model.domain.StampaResultSet;
 
 public class CopieDAO implements GenericProcedureDAO<Copia> {
 
@@ -44,7 +44,7 @@ public class CopieDAO implements GenericProcedureDAO<Copia> {
 
             if (status) {
                 ResultSet rs = cs.getResultSet();
-                printResultsTable(rs,System.out);
+                StampaResultSet.printResultsTable(rs,System.out);
 
             }
 
@@ -58,13 +58,11 @@ public class CopieDAO implements GenericProcedureDAO<Copia> {
 
             Connection conn = ConnectionFactory.getConnection();
             CallableStatement cs = conn.prepareCall("{call reportCopieNonRestituite()}");
-            System.out.println("prima execute");
             boolean status = cs.execute();
-            System.out.println("dopo execute");
 
             if (status) {
                 ResultSet rs = cs.getResultSet();
-                printResultsTable(rs,System.out);
+                StampaResultSet.printResultsTable(rs,System.out);
 
             }
 
@@ -78,13 +76,11 @@ public class CopieDAO implements GenericProcedureDAO<Copia> {
 
             Connection conn = ConnectionFactory.getConnection();
             CallableStatement cs = conn.prepareCall("{call reportCopieTrasferite()}");
-            System.out.println("prima execute");
             boolean status = cs.execute();
-            System.out.println("dopo execute");
 
             if (status) {
                 ResultSet rs = cs.getResultSet();
-                printResultsTable(rs,System.out);
+                StampaResultSet.printResultsTable(rs,System.out);
 
             }
 
@@ -101,12 +97,28 @@ public class CopieDAO implements GenericProcedureDAO<Copia> {
             cs.setString(1, (String)params[0]);
             cs.setInt(2, (int)params[1]);
             cs.setInt(3, (int)params[2]);
-            System.out.println("prima execute");
             boolean status = cs.execute();
-            System.out.println("dopo execute");
 
         } catch (SQLException e) {
             throw new DAOException("Errore posizione copia invariata: " + e.getMessage());
+        }
+    }
+
+    public void cercaCopia(Object... params) throws DAOException {
+        try {
+
+            Connection conn = ConnectionFactory.getConnection();
+            CallableStatement cs = conn.prepareCall("{call cercaCopia(?)}");
+            cs.setString(1, (String)params[0]);
+            boolean status = cs.execute();
+
+            if (status) {
+                ResultSet rs = cs.getResultSet();
+                StampaResultSet.printResultsTable(rs,System.out);
+            }
+
+        } catch (SQLException e) {
+            throw new DAOException("Errore nella ricerca di una copia: " + e.getMessage());
         }
     }
 }

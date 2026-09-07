@@ -7,7 +7,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 public class StampaResultSet {
-    private static void printResultsTable(ResultSet rs, OutputStream output) throws SQLException {
+    public static void printResultsTable(ResultSet rs, OutputStream output) throws SQLException {
         // Set up the output stream
         PrintWriter out = new PrintWriter(output);
 

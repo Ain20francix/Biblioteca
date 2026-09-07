@@ -3,17 +3,23 @@ package it.uniroma2.dicii.bd.controller;
 import it.uniroma2.dicii.bd.exception.DAOException;
 import it.uniroma2.dicii.bd.model.dao.*;
 import it.uniroma2.dicii.bd.model.domain.*;
-import it.uniroma2.dicii.bd.view.BibliotecarioVIew;
+import it.uniroma2.dicii.bd.view.BibliotecarioView;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
-import java.util.Arrays;
+
+
+import it.uniroma2.dicii.bd.model.domain.StampaResultSet;
+
 
 public class BibliotecarioController  implements Controller{
 
@@ -28,7 +34,7 @@ public class BibliotecarioController  implements Controller{
         while(true) {
             int choice;
             try {
-                choice = BibliotecarioVIew.showMenu();
+                choice = BibliotecarioView.showMenu();
             } catch(IOException e) {
                 throw new RuntimeException(e);
             }
@@ -44,10 +50,28 @@ public class BibliotecarioController  implements Controller{
                 case 8 -> stampaListaLibri();
                 case 9 -> stampaListaUtenti();
                 case 10 -> cambiaPosizione();
-                case 11 -> System.exit(0);
-                default -> throw new RuntimeException("Invalid choice");
+                case 11 -> cercaCopia();
+                case 12 -> System.exit(0);
+                default -> throw new RuntimeException("Opzione invalida");
 
             }
+        }
+    }
+
+    public void stampaListaBiblioteche(){
+        try {
+            Connection conn = ConnectionFactory.getConnection();
+            CallableStatement cs = conn.prepareCall("{call listaBiblioteche()}");
+            boolean status = cs.execute();
+
+            if (status) {
+                ResultSet rs = cs.getResultSet();
+                StampaResultSet.printResultsTable(rs,System.out);
+
+            }
+        } catch (SQLException e) {
+            System.out.println("Errore nella stampa "+e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
@@ -78,11 +102,8 @@ public class BibliotecarioController  implements Controller{
     }
 
     public void registraUtente() {
-
-        //Bisogna aggiungere il contatto dell'utente obbligatorio al momento della registrazione
-
         String []parametri = {"il codice fiscale", "il nome", "il cognome",
-                "il sesso a scelta tra:\n1)Uomo\n2)Donna\n3)Non binario\n4)Preferisco non specificare\n", "la data di nascita", "la città di nascita", "l'indirizzo di residenza",
+                "un'opzione a scelta tra:\n1)Uomo\n2)Donna\n3)Non binario\n4)Preferisco non specificare\n", "la data di nascita", "la città di nascita", "l'indirizzo di residenza",
                 "il mezzo di contatto preferito a scelta tra:\n1)Cellulare\n2)Telefono di casa\n3)Email\n","il valore del contatto specificato\n"};
         String[] valori = new String[parametri.length];
         Utente u=null;
@@ -110,14 +131,7 @@ public class BibliotecarioController  implements Controller{
                             flag=true;
                         }
                         break;
-                    case 1:
-                        if(temp.length()>30){
-                            System.out.println("Valore non valido, riprovare!Inserire meno di 30 caratteri\n");
-                            arg--;
-                            flag=true;
-                        }
-                        break;
-                    case 2:
+                    case 1, 2:
                         if(temp.length()>30){
                             System.out.println("Valore non valido, riprovare!Inserire meno di 30 caratteri\n");
                             arg--;
@@ -159,15 +173,8 @@ public class BibliotecarioController  implements Controller{
                             }
                         }
                         break;
-                    case 5:
+                    case 5, 6:
                         if (temp.length() > 40) {
-                            System.out.println("Valore non valido, riprovare!\nInserire meno di 40 caratteri\n");
-                            arg--;
-                            flag=true;
-                        }
-                        break;
-                    case 6:
-                        if (temp.length() >40) {
                             System.out.println("Valore non valido, riprovare!\nInserire meno di 40 caratteri\n");
                             arg--;
                             flag=true;
@@ -180,6 +187,7 @@ public class BibliotecarioController  implements Controller{
             arg++;
         }
 
+        //Inserimento contatto
         arg=0;
         while(arg<1) {
             flag = false;
@@ -215,6 +223,25 @@ public class BibliotecarioController  implements Controller{
                     throw new RuntimeException("Errore di lettura input", e);
                 }
 
+                if(valori[arg+7].equals("Cellulare") && temp.length()!=10){
+                    System.out.println("Numero di cellulare non valido, riprovare!\n");
+                    arg--;
+                    flag=true;
+                }else if(valori[arg+7].equals("Telefono di casa") && temp.length()!=10){
+                    System.out.println("Telefono di casa non valido, riprovare!\n");
+                    arg--;
+                    flag=true;
+                }else if((valori[arg+7].equals("Email") &&
+                        !(temp.toUpperCase().contains("@GMAIL.COM")
+                        || temp.toUpperCase().contains("@LIBERO.IT")
+                        || temp.toUpperCase().contains("@OUTLOOK.IT")
+                                || temp.toUpperCase().contains("@ICLOUD.COM")
+                                || temp.toUpperCase().contains("@HOTMAIL.COM")))){
+                    System.out.println("Email inserita non valida, riprovare!\n");
+                    arg--;
+                    flag=true;
+                }
+
                 if(temp.equals("") || temp.length()==0){
                     System.out.println("Valore non valido, riprovare!\n");
                     arg--;
@@ -226,17 +253,18 @@ public class BibliotecarioController  implements Controller{
             arg++;
         }
 
-        System.out.println("Fine inserimento parametri\n");
-
         try {
             u = new UtenteDAO().execute(valori);
             System.out.println("Utente correttamente registrato\n");
         }  catch(DAOException e) {
             System.out.println("Operazione non riuscita:\n"+e.getMessage());
         }
-    }
+    }           //OK
 
     public void registraPrestitoUtente(){
+
+        //Siccome va inserito il codice fiscale dell'utente viene prima visualizzata una lista degli utenti
+        stampaListaUtenti();
 
         String []parametri = {"Copia", "Utente", "DurataConsultazioneEspressa"};
         String[] valori = new String[parametri.length];
@@ -285,7 +313,6 @@ public class BibliotecarioController  implements Controller{
             }
             arg++;
         }
-        System.out.println("Fine inserimento parametri\n");
 
         try {
             pu = new PrestitoUtenteDAO().execute(valori[0],java.sql.Date.valueOf(LocalDate.now()),valori[1],Integer.parseInt(valori[2]));
@@ -293,11 +320,9 @@ public class BibliotecarioController  implements Controller{
         }catch(DAOException e){
             System.out.println("Operazione non riuscita\n"+e.getMessage());
         }
-    }
+    }    //OK
 
     public void restituzioneCopia(){
-
-        //bisogna agggiornare la data restituzione del prestito e rendere la copia nuovamente disponibile
         String []parametri = {"Copia"};
         String[] valori = new String[parametri.length];
         int arg=0;
@@ -330,19 +355,23 @@ public class BibliotecarioController  implements Controller{
             }
             arg++;
         }
-
-            //(Copia,DataRestituzione)
-            try {
-                new PrestitoUtenteDAO().restituzioneCopiaUtente(valori[0],java.sql.Date.valueOf(LocalDate.now()));
-                System.out.println("RRestituzione copia correttamente avvenuta\n");
-            }catch(DAOException e){
-                System.out.println("Operazione non riuscita\n");
-                throw new RuntimeException(e);
-            }
-    }
+        try {
+            new PrestitoUtenteDAO().restituzioneCopiaUtente(valori[0],java.sql.Date.valueOf(LocalDate.now()));
+            System.out.println("Restituzione copia correttamente avvenuta\n");
+        }catch(DAOException e){
+            System.out.println("Operazione non riuscita\n");
+            throw new RuntimeException(e);
+        }
+    }           //OK
 
     public String inserisciCopia(){
-        Copia c;
+
+        //Nella realtà si potrebbe leggere il codice ISBN della copia fisica, in questo scenario semplificato si stampa una lista dei libri solo per copiare l'ISBN
+        //ma nella realtà questo non avverrebbe, chiaramenteutente2
+
+        stampaListaLibri();
+
+        Copia c=null;
         String []parametri = {"etichetta della copia", "codice del libro","numero ripiano","numero scaffale"};
         String[] valori = new String[parametri.length];
         int arg=0;
@@ -419,6 +448,7 @@ public class BibliotecarioController  implements Controller{
         * Prestata da: Trasferimento di una copia da una biblioteca esterna
         * */
         boolean flag=false;
+        boolean flag2=false;
         String temp="";
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("*** Inserisci una delle seguenti opzioni ***\n");
@@ -445,6 +475,7 @@ public class BibliotecarioController  implements Controller{
 
         //Caso registrazione dati copia proveniente da una biblioteca esterna
         if(temp.equals("2")){
+            flag2=true;
             System.out.println("Inserisci i dati della copia ricevuta!");
             valori[arg]=(String)inserisciCopia();//inserimento dati della copia trasferita
             arg++;
@@ -453,15 +484,21 @@ public class BibliotecarioController  implements Controller{
         //Registrazione trasferimento
         while(arg<parametri.length) {
             flag = false;
+
+            //Si stampa una lista delle biblioteche solo per facilitare l'inserimento dei dati da parte del bibliotecario
+            if(arg==1){
+                stampaListaBiblioteche();
+            }
+
             System.out.printf("Inserisci %s:", parametri[arg]);
+
             try {
                 temp = reader.readLine();
             } catch (IOException e) {
                 throw new RuntimeException("Errore di lettura input", e);
             }
 
-            //Uscita nel caso si volesse interrompere l'operazione
-            if(temp.equals("Exit")){return;}
+            //Ora che è stata registrata la copia non si può in nessun caso interrompere la registrazione del trasferimento, altrimenti si perde informazione
 
             switch (arg) {
                 case 0:
@@ -606,13 +643,43 @@ public class BibliotecarioController  implements Controller{
             arg++;
         }
 
-        System.out.println("Fine inserimento parametri\n");
-
         try {
             new CopieDAO().cambiaPosizione(valori[0],Integer.parseInt(valori[1]),Integer.parseInt(valori[2]));
-            System.out.println("Utente correttamente registrato\n");
+            System.out.println("Posizione copia correttamente aggiornata\n");
         }  catch(DAOException e) {
             System.out.println("Operazione non riuscita:\n"+e.getMessage());
+        }
+    }
+
+    public void cercaCopia(){
+
+        //Viene stampata una lista dei libri per aiutare il bibliotecario nella ricerca
+        stampaListaLibri();
+
+        boolean flag=false;
+        String temp="";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+        while(!flag){
+            flag=true;
+            System.out.printf("Inserisci l'ISBN del libro di cui cercare una copia:");
+            try {
+                temp = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException("Errore di lettura input", e);
+            }
+
+            if(temp.length()!=17){
+                System.out.println("Valore non valido, riprovare!\nIl codice ISBN deve avere 17 caratteri, compreso il carattere '-'\n");
+                flag=false;
+            }
+        }
+
+        try {
+            new CopieDAO().cercaCopia(temp);
+        }catch(DAOException e){
+            System.out.println("Operazione non riuscita\n");
+            throw new RuntimeException(e);
         }
     }
 }

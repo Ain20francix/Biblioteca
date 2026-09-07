@@ -88,11 +88,12 @@ CREATE TABLE Biblioteca(
 
 DROP TABLE IF EXISTS `biblioteca`.`Trasferimenti`;
 CREATE TABLE Trasferimenti(
-    Copia CHAR(4) PRIMARY KEY NOT NULL,
+    Copia CHAR(4) NOT NULL,
     DataCessione DATE NOT NULL,
     Biblioteca CHAR(100) NOT NULL,
     DataRestituzione DATE DEFAULT NULL,
     Stato ENUM('Prestata a','Prestata da') NOT NULL,
+    PRIMARY KEY(Copia,DataCessione,Biblioteca),
     FOREIGN KEY (Copia) REFERENCES Copia(Etichetta),
     FOREIGN KEY (Biblioteca) REFERENCES Biblioteca(Indirizzo)
 );
@@ -269,6 +270,16 @@ CREATE PROCEDURE `trasferimentoCopia` (in var_Copia CHAR(4),in var_DataCessione 
 BEGIN
 
     DECLARE var_stato_copia CHAR(30);
+    DECLARE var_Biblioteca_origine CHAR(100);
+
+    -- controllo che la biblioteca di destinazione non sia la stessa che ha prestato la copia
+    SELECT `Biblioteca` INTO var_Biblioteca_origine FROM `Trasferimenti` WHERE `Copia`=var_Copia AND `Stato`='Prestata da';
+
+
+    IF var_Biblioteca = var_Biblioteca_origine THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: la biblioteca di destinazione risulta la medesima dalla quale proviene la copia che si sta cercando di trasferire.';
+    END IF;
 
     -- controllo che la copia da trasferire esista
     IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = var_Copia) THEN
@@ -374,6 +385,27 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure cercaCopia
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `cercaCopia`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `cercaCopia` (in var_ISBN CHAR(17))
+BEGIN
+
+    -- controlliamo che esista una copia disponibile del libro richiesto
+
+    SELECT `Etichetta`,`NumeroRipiano`, `NumeroScaffale` FROM `Copia` WHERE Stato='Disponibile' AND Copia.CodiceLibro=(SELECT Libro.ISBN FROM Libro WHERE Libro.Titolo='Norwegian Wood');
+
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure cambiaPosizione
 -- -----------------------------------------------------
 
@@ -448,6 +480,24 @@ CREATE PROCEDURE `listaLibri` ()
 BEGIN
 
     SELECT * FROM `Libro`;
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure listaBiblioteche
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `listaBiblioteche`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `listaBiblioteche` ()
+BEGIN
+
+    SELECT `Indirizzo`, `Nome` FROM `Biblioteca`;
 
 END$$
 
@@ -699,7 +749,7 @@ DELIMITER ;
 -- Trigger per cambiaPosizione
 -- -----------------------------------------------------
 
-USE `biblioteca`;
+/*USE `biblioteca`;
 DROP TRIGGER IF EXISTS `biblioteca`.`before_cambiaPosizione`;
 
 DELIMITER $$
@@ -719,7 +769,7 @@ BEGIN
 
 END$$
 
-DELIMITER ;
+DELIMITER ;*/
 
 -- -----------------------------------------------------
 -- Trigger per regole aziendali
@@ -797,6 +847,8 @@ GRANT EXECUTE ON procedure `biblioteca`.`listaUtenti` TO 'bibliotecario'@'localh
 GRANT EXECUTE ON procedure `biblioteca`.`listaLibri` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`cambiaPosizione` TO 'bibliotecario'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`cercaCopia` TO 'bibliotecario'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`listaBiblioteche` TO 'bibliotecario'@'localhost';
 
 -- permessi responsabile
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'responsabile'@'localhost';
@@ -816,6 +868,7 @@ GRANT EXECUTE ON procedure `biblioteca`.`listaLibri` TO 'amministratore'@'localh
 GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'amministratore'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'amministratore'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`listaBiblioteche` TO 'amministratore'@'localhost';
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

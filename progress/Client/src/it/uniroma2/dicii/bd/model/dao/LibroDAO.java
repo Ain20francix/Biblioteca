@@ -3,13 +3,14 @@ package it.uniroma2.dicii.bd.model.dao;
 import it.uniroma2.dicii.bd.exception.DAOException;
 import it.uniroma2.dicii.bd.model.domain.Copia;
 import it.uniroma2.dicii.bd.model.domain.Libro;
+import it.uniroma2.dicii.bd.model.domain.StampaResultSet;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static it.uniroma2.dicii.bd.model.dao.BookingListProcedureDAO.printResultsTable;
+import it.uniroma2.dicii.bd.model.domain.StampaResultSet;
 
 public class LibroDAO implements GenericProcedureDAO<Libro> {
 
@@ -45,7 +46,7 @@ public class LibroDAO implements GenericProcedureDAO<Libro> {
 
                 if (status) {
                     ResultSet rs = cs.getResultSet();
-                    printResultsTable(rs,System.out);
+                    StampaResultSet.printResultsTable(rs,System.out);
 
                 }
 

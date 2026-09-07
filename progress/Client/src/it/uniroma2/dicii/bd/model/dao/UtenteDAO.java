@@ -8,7 +8,7 @@ import it.uniroma2.dicii.bd.model.domain.Utente;
 
 import java.sql.*;
 
-import static it.uniroma2.dicii.bd.model.dao.BookingListProcedureDAO.printResultsTable;
+import it.uniroma2.dicii.bd.model.domain.StampaResultSet;
 
 public class UtenteDAO implements GenericProcedureDAO<Utente> {
 
@@ -42,7 +42,7 @@ public class UtenteDAO implements GenericProcedureDAO<Utente> {
 
             if (status) {
                 ResultSet rs = cs.getResultSet();
-                printResultsTable(rs,System.out);
+                StampaResultSet.printResultsTable(rs,System.out);
 
             }
 

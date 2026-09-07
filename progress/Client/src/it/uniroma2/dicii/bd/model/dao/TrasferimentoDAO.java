@@ -24,15 +24,11 @@ public class TrasferimentoDAO implements GenericProcedureDAO<Trasferimento>{
             cs.setString(4, (String) params[3]);    //Stato
             cs.execute();
 
-            System.out.println("fine procedure trasferimento copia");
         } catch (SQLException e) {
             throw new DAOException("Trasferimento non correttamente inserito: " + e.getMessage());
         }
 
         return new Trasferimento((String) params[0],((Date)params[1]).toLocalDate(),(String) params[2],null,(String) params[3]);
-
-        //String Copia,LocalDate DataCessione,String Biblioteca,LocalDate DataRestituzione,String Stato
-
     }
 
     public void restituzioneCopiaTrasferita(Object... params) throws DAOException {

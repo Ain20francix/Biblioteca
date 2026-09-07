@@ -23,11 +23,9 @@ public class PrestitoUtenteDAO implements GenericProcedureDAO<PrestitoUtente>{
             cs.registerOutParameter(6,Types.TINYINT);
             cs.execute();
 
-            System.out.println("La copia si trova sul ripiano "+cs.getInt(5)+", scaffale "+cs.getInt(6));
-
-            System.out.println("fine procedure registra-prestito_utente");
+            System.out.println("*** La copia si trova sul ripiano "+cs.getInt(5)+", scaffale "+cs.getInt(6)+" ***");
         } catch (SQLException e) {
-            throw new DAOException("Prestito non correttamente inserito: " + e.getMessage());
+            throw new DAOException("Prestito non correttamente registrato: " + e.getMessage());
         }
 
         return new PrestitoUtente((String)params[0], ((Date)params[1]).toLocalDate(),(String)params[2],(int)params[3]);
@@ -43,14 +41,9 @@ public class PrestitoUtenteDAO implements GenericProcedureDAO<PrestitoUtente>{
 
             cs.execute();
 
-
-            System.out.println("fine procedure registra-prestito_utente");
         } catch (SQLException e) {
-            throw new DAOException("Prestito non correttamente inserito: " + e.getMessage());
+            throw new DAOException("Restituzione copia non correttamente avvenuta: " + e.getMessage());
         }
 
-        //String Copia,LocalDate DataPrestito,String Utente,int DurataConsultazioneEspressa
-
-        //return new PrestitoUtente((String)params[0], ((Date)params[2]).toLocalDate(),(String)params[1],1);//valori messi a caso, sistemare
     }
 }

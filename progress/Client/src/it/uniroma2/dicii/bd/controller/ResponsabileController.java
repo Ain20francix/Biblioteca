@@ -6,7 +6,6 @@ import it.uniroma2.dicii.bd.model.dao.CopieDAO;
 import it.uniroma2.dicii.bd.model.dao.LibroDAO;
 import it.uniroma2.dicii.bd.model.domain.Libro;
 import it.uniroma2.dicii.bd.model.domain.Role;
-import it.uniroma2.dicii.bd.view.BibliotecarioVIew;
 import it.uniroma2.dicii.bd.view.ResponsabileView;
 
 import java.io.BufferedReader;
