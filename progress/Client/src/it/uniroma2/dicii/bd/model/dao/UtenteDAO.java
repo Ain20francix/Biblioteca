@@ -28,10 +28,8 @@ public class UtenteDAO implements GenericProcedureDAO<Utente> {
             cs.setString(8, (String) params[7]); //MezzoPreferito
             cs.setString(9, (String) params[8]); //Contatto
             cs.execute();
-
-            System.out.println("fine procedure inserisci_utente");
         } catch (SQLException e) {
-            throw new DAOException("Utente già esistente: " + e.getMessage());
+            throw new DAOException("Utente non registrato: " + e.getMessage());
         }
         return new Utente((String)params[0],(String)params[1],(String)params[2],(String)params[3],(String)params[4],(String)params[5],(String)params[6],(String)params[7]);
     }

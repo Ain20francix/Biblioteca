@@ -18,14 +18,15 @@ public class BibliotecarioVIew {
         System.out.println("7) Stampa lista copie");
         System.out.println("8) Stampa lista libri");
         System.out.println("9) Stampa lista utenti");
-        System.out.println("10) Quit");
+        System.out.println("10) Cambia posizione copia");
+        System.out.println("11) Quit");
 
         Scanner input = new Scanner(System.in);
         int choice = 0;
         while (true) {
             System.out.print("Please enter your choice: ");
             choice = input.nextInt();
-            if (choice >= 1 && choice <= 10) {
+            if (choice >= 1 && choice <= 11) {
                 break;
             }
             System.out.println("Invalid option");

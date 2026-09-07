@@ -92,6 +92,23 @@ public class CopieDAO implements GenericProcedureDAO<Copia> {
             throw new DAOException("Errore report copie trasferite: " + e.getMessage());
         }
     }
+
+    public void cambiaPosizione(Object... params) throws DAOException {
+        try {
+
+            Connection conn = ConnectionFactory.getConnection();
+            CallableStatement cs = conn.prepareCall("{call cambiaPosizione(?,?,?)}");
+            cs.setString(1, (String)params[0]);
+            cs.setInt(2, (int)params[1]);
+            cs.setInt(3, (int)params[2]);
+            System.out.println("prima execute");
+            boolean status = cs.execute();
+            System.out.println("dopo execute");
+
+        } catch (SQLException e) {
+            throw new DAOException("Errore posizione copia invariata: " + e.getMessage());
+        }
+    }
 }
 
 

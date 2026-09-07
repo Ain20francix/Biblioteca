@@ -43,7 +43,8 @@ public class BibliotecarioController  implements Controller{
                 case 7 -> stampaListaCopie();
                 case 8 -> stampaListaLibri();
                 case 9 -> stampaListaUtenti();
-                case 10 -> System.exit(0);
+                case 10 -> cambiaPosizione();
+                case 11 -> System.exit(0);
                 default -> throw new RuntimeException("Invalid choice");
 
             }
@@ -272,7 +273,7 @@ public class BibliotecarioController  implements Controller{
                     }
                     break;
                 case 2:
-                    if(temp.equals(1) || temp.equals(2) || temp.equals(3)){
+                    if(!(temp.equals("1") || temp.equals("2") || temp.equals("3"))){
                         System.out.println("Valore non valido, riprovare! La durata della consultazione può essere 1,2,3 mesi\n");
                         arg--;
                         flag=true;
@@ -290,8 +291,7 @@ public class BibliotecarioController  implements Controller{
             pu = new PrestitoUtenteDAO().execute(valori[0],java.sql.Date.valueOf(LocalDate.now()),valori[1],Integer.parseInt(valori[2]));
             System.out.println("Prestito Utente correttamente registrato\n");
         }catch(DAOException e){
-            System.out.println("Operazione non riuscita\n");
-            throw new RuntimeException(e);
+            System.out.println("Operazione non riuscita\n"+e.getMessage());
         }
     }
 
@@ -553,6 +553,66 @@ public class BibliotecarioController  implements Controller{
             }
         }catch(DAOException e) {
             System.out.println("Restituzione copia trasferita non completata con successo\n"+e.getMessage());
+        }
+    }
+
+    public void cambiaPosizione(){
+
+        String []parametri = {"l'etichetta della copia","il numero del ripiano","il numero dello scaffale"};
+        String[] valori = new String[parametri.length];
+        int arg=0;
+        boolean flag=false;
+        String temp="";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        while(arg<parametri.length) {
+            flag = false;
+            System.out.printf("Inserisci %s:", parametri[arg]);
+            try {
+                temp = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException("Errore di lettura input", e);
+            }
+
+            if (temp.equals("Exit")) {
+                return;
+            }
+
+            switch(arg){
+                case 0:
+                    if(temp.length()!=4){
+                        System.out.println("Valore non valido, riprovare!\nL'etichetta della copia deve essere di 4 caratteri\n");
+                        arg--;
+                        flag=true;
+                    }
+                    break;
+                default:
+                    try {
+                        int n=Integer.parseInt(temp);
+                        if(n<0){
+                            System.out.printf("Inserire un numero intero positivo\n");
+                            arg--;
+                            flag=false;
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.printf("Inserire un numero intero positivo\n");
+                        arg--;
+                        flag=false;
+                    }
+                    break;
+            }
+            if(!flag){
+                valori[arg]=temp;
+            }
+            arg++;
+        }
+
+        System.out.println("Fine inserimento parametri\n");
+
+        try {
+            new CopieDAO().cambiaPosizione(valori[0],Integer.parseInt(valori[1]),Integer.parseInt(valori[2]));
+            System.out.println("Utente correttamente registrato\n");
+        }  catch(DAOException e) {
+            System.out.println("Operazione non riuscita:\n"+e.getMessage());
         }
     }
 }

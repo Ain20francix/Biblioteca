@@ -374,6 +374,32 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure cambiaPosizione
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `cambiaPosizione`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `cambiaPosizione` (in var_Copia CHAR(4), in var_NumeroRipiano TINYINT,in var_NumeroScaffale TINYINT)
+BEGIN
+
+    -- controlliamo che la copia sia esistente e disponibile
+    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta`=var_Copia AND `Stato`='Disponibile') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: non esiste tale copia.';
+    END IF;
+
+    -- aggiorniamo la posizione della copia nella biblioteca
+    UPDATE `Copia` SET `NumeroRipiano`=var_NumeroRipiano,`NumeroScaffale`=var_NumeroScaffale WHERE `Etichetta`=var_Copia;
+
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure listaCopie
 -- -----------------------------------------------------
 
@@ -430,6 +456,8 @@ DELIMITER ;
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Autore`
 -- -----------------------------------------------------
+START TRANSACTION;
+
 INSERT INTO `Autore`(`Nome`, `Cognome`) VALUES ('Mario','Rossi');
 INSERT INTO `Autore`(`Nome`, `Cognome`) VALUES ('Giovanni','Verga');
 INSERT INTO `Autore`(`Nome`, `Cognome`) VALUES ('Italo','Calvino');
@@ -441,9 +469,12 @@ INSERT INTO `Autore`(`Nome`, `Cognome`) VALUES ('Cesare','Pavese');
 INSERT INTO `Autore`(`Nome`, `Cognome`) VALUES ('Natalia','Ginzburg');
 INSERT INTO `Autore`(`Nome`, `Cognome`) VALUES ('Leonardo','Sciascia');
 
+COMMIT;
+
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Libro`
 -- -----------------------------------------------------
+START TRANSACTION;
 
 INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-81-7525-766-5','La fattoria di zio Tobia','Feltrinelli','Umoristico');
 INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-82-7525-766-5','Io non ho paura','Feltrinelli','Thriller');
@@ -457,9 +488,13 @@ INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-
 INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-04-33333-7','Cent’anni di solitudine','Mondadori','Giallo');
 INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-07-44444-8','Norwegian Wood','Feltrinelli','Azione');
 
+COMMIT;
+
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`HaScritto`
 -- -----------------------------------------------------
+START TRANSACTION;
+
 INSERT INTO `HaScritto`(`CodiceLibro`, `NomeAutore`, `CognomeAutore`) VALUES ('978-81-7525-766-5','Italo','Calvino');
 INSERT INTO `HaScritto`(`CodiceLibro`, `NomeAutore`, `CognomeAutore`) VALUES ('978-82-7525-766-5','Paola','Mastrocola');
 INSERT INTO `HaScritto`(`CodiceLibro`, `NomeAutore`, `CognomeAutore`) VALUES ('978-84-7525-766-5','Paola','Mastrocola');
@@ -472,25 +507,36 @@ INSERT INTO `HaScritto`(`CodiceLibro`, `NomeAutore`, `CognomeAutore`) VALUES ('9
 INSERT INTO `HaScritto`(`CodiceLibro`, `NomeAutore`, `CognomeAutore`) VALUES ('978-88-04-33333-7','Umberto','Eco');
 INSERT INTO `HaScritto`(`CodiceLibro`, `NomeAutore`, `CognomeAutore`) VALUES ('978-88-07-44444-8','Luigi','Pirandello');
 
+COMMIT;
+
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Copia`
 -- -----------------------------------------------------
 
+START TRANSACTION;
+
 INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0001','978-81-7525-766-5','Disponibile','3','4');
 INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0002','978-81-7525-766-5','Disponibile','3','4');
 INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0003','978-81-7525-766-5','Disponibile','3','4');
-INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0004','978-88-04-55555-1','Prestata','1','2');
-INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0005','978-88-06-12345-2','Prestata','2','1');
+INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0004','978-88-04-55555-1','Prestata',NULL,NULL);
+INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0005','978-88-06-12345-2','Prestata',NULL,NULL);
 INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0006','978-88-17-98765-3','Disponibile','4','3');
 INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0007','978-88-07-88888-4','Disponibile','1','5');
-INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0008','978-88-11-11111-5','Prestata','3','2');
+INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0008','978-88-11-11111-5','Prestata',NULL,NULL);
 INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0009','978-88-06-22222-6','Disponibile','5','1');
 INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0010','978-88-04-33333-7','Disponibile','2','4');
-INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0011','978-88-07-44444-8','Prestata','3','6');
+INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0011','978-88-07-44444-8','Prestata',NULL,NULL);
+INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0012','978-88-07-44444-8','Disponibile','3','6');
+INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0013','978-88-07-44444-8','Disponibile','3','6');
+INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0014','978-88-07-44444-8','Disponibile','3','6');
+INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES ('0015','978-88-07-44444-8','Disponibile','3','6');
+
+COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Utente`
 -- -----------------------------------------------------
+START TRANSACTION;
 
 INSERT INTO `Utente`(`CF`, `Nome`, `Cognome`, `Sesso`, `DataNascita`, `LuogoNascita`, `Residenza`, `MezzoPreferito`) VALUES ('FGGNML04J47A788H','Giuliana','Cristella','Donna','1998-05-15','Roma','Via Paperino','Email');
 INSERT INTO `Utente`(`CF`, `Nome`, `Cognome`, `Sesso`, `DataNascita`, `LuogoNascita`, `Residenza`, `MezzoPreferito`) VALUES ('HSSAHT99D66G432L','Kai','Charon','Non binario','1994-02-11','Roma','Via Castagneto','Email');
@@ -503,10 +549,13 @@ INSERT INTO `Utente`(`CF`, `Nome`, `Cognome`, `Sesso`, `DataNascita`, `LuogoNasc
 INSERT INTO `Utente`(`CF`, `Nome`, `Cognome`, `Sesso`, `DataNascita`, `LuogoNascita`, `Residenza`, `MezzoPreferito`) VALUES ('FRRMRC95L50H501J','Marco','Ferrari','Uomo','1995-07-10','Roma','Via Nazionale 10','Telefono di casa');
 INSERT INTO `Utente`(`CF`, `Nome`, `Cognome`, `Sesso`, `DataNascita`, `LuogoNascita`, `Residenza`, `MezzoPreferito`) VALUES ('SMTSRA00E65Z100L','Sara','Valenza','Non binario','2000-05-25','Venezia','Cannaregio 1234','Cellulare');
 
+COMMIT;
+
 
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Contatto`
 -- -----------------------------------------------------
+START TRANSACTION;
 
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Email','giuliana98@gmail.com','FGGNML04J47A788H');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Email','kai_secret@libero.it','HSSAHT99D66G432L');
@@ -519,17 +568,23 @@ INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','33659514
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Telefono di casa','0678126598','FRRMRC95L50H501J');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','3281556774','SMTSRA00E65Z100L');
 
+COMMIT;
+
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`PrestitoUtente`
 -- -----------------------------------------------------
+START TRANSACTION;
 
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0004','2026-05-19','NRMSFN01A41Z133Y',NULL,'1');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0005','2026-07-14','SMTSRA00E65Z100L','2026-08-28','3');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0011','2026-07-14','AGSRWQ78G56D211H',NULL,'2');
 
+COMMIT;
+
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Biblioteca`
 -- -----------------------------------------------------
+START TRANSACTION;
 
 INSERT INTO `Biblioteca`(`Indirizzo`, `Nome`, `OrarioApertura`) VALUES ('Via Giuseppe','Feltrinelli','9');
 INSERT INTO `Biblioteca`(`Indirizzo`, `Nome`, `OrarioApertura`) VALUES ('Via Castani','Mondadori','8');
@@ -543,11 +598,18 @@ INSERT INTO `Biblioteca`(`Indirizzo`, `Nome`, `OrarioApertura`) VALUES ('Viale A
 INSERT INTO `Biblioteca`(`Indirizzo`, `Nome`, `OrarioApertura`) VALUES ('Via Matteotti','Giunti',NULL);
 INSERT INTO `Biblioteca`(`Indirizzo`, `Nome`, `OrarioApertura`) VALUES ('Via Roma','Feltrinelli','9');
 
+COMMIT;
+
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Trasferimenti`
 -- -----------------------------------------------------
+START TRANSACTION;
+
 INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES ('0008','2024-08-16','Via dei Tre Pupazzi',NULL,'Prestata a');
 INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES ('0011','2026-12-02','Viale Angelico',NULL,'Prestata da');
+
+COMMIT;
+
 -- -----------------------------------------------------
 -- Data for table `biblioteca`.`Ruoli`
 -- -----------------------------------------------------
@@ -634,51 +696,62 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- Trigger per trasferimentoCopia
+-- Trigger per cambiaPosizione
 -- -----------------------------------------------------
 
-/*USE `biblioteca`;
-DROP TRIGGER IF EXISTS `biblioteca`.`before_trasferimentoCopia`;
+USE `biblioteca`;
+DROP TRIGGER IF EXISTS `biblioteca`.`before_cambiaPosizione`;
 
 DELIMITER $$
 
-CREATE TRIGGER `biblioteca`.`before_trasferimentoCopia` BEFORE INSERT ON `Trasferimenti` FOR EACH ROW
+CREATE TRIGGER `biblioteca`.`before_cambiaPosizione` BEFORE UPDATE ON `Copia` FOR EACH ROW
 BEGIN
-    -- controlliamo che la copia che si vuole tarsferire esista e sia disponibile
-    DECLARE var_stato CHAR(30);
 
-    SELECT `Stato` INTO var_stato FROM `Copia` WHERE `Etichetta` = NEW.Copia;
+    DECLARE var_Stato ENUM('Disponibile','Prestata');
 
-    -- si considera il fatto che dopo che viene inserita la nuova copia, prima di poter essere registrato il trasferimento
-    -- il bibliotecario puo assentarsi, la copia puo essere prestata e dopo viene registrato il trasferimento quindi
-    -- il suo stato puo essere sia disponibile sia prestata
+    SELECT `Stato` INTO var_Stato FROM `Copia` WHERE `Etichetta`=NEW.`Etichetta`;
 
-    IF var_stato != 'Disponibile' THEN
-    SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: copia non disponibile per il trasferimento.';
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = NEW.Copia AND `Stato`= 'Disponibile') THEN
+    -- controlliamo che la copia di cui si voglia cambiare la posizione non sia in prestito/trasferita
+    IF var_Stato != 'Disponibile' THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: la copia non esiste.';
-    END IF;
-
-    -- controlliamo che la biblioteca esista
-    IF NOT EXISTS (SELECT 1 FROM `Biblioteca` WHERE `Indirizzo` = NEW.Biblioteca) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: indirizzo della biblioteca inserita inesistente.';
+        SET MESSAGE_TEXT = 'Errore Trigger: la copia risulta prestata/trasferita';
     END IF;
 
 END$$
 
-DELIMITER ;*/
+DELIMITER ;
 
 -- -----------------------------------------------------
 -- Trigger per regole aziendali
 -- -----------------------------------------------------
 
--- da implementare il trigger per evitare che un utente possa prendere in prestito lo stesso giorno più di 3 copie dello stesso libro
+USE `biblioteca`;
+DROP TRIGGER IF EXISTS `biblioteca`.`massimoCopiePrestabili`;
 
+DELIMITER $$
+
+CREATE TRIGGER `biblioteca`.`massimoCopiePrestabili` BEFORE INSERT ON `PrestitoUtente` FOR EACH ROW
+BEGIN
+
+    DECLARE var_CodiceLibro CHAR(17);
+    DECLARE var_numeroCopie TINYINT;
+
+    -- preleviamo il codice libro associato alla copia che sta cercando di essere prestata
+
+    SELECT `CodiceLibro` INTO var_CodiceLibro FROM `Copia` WHERE `Etichetta`=NEW.Copia;
+
+    -- controlliamo che l'utente non stia cercando di prendere nello stesso giorno una quarta copia di uno stesso libro'
+
+    SELECT COUNT(*) INTO var_numeroCopie FROM `PrestitoUtente`,Copia,Libro WHERE PrestitoUtente.Copia=Copia.Etichetta AND Copia.CodiceLibro=Libro.ISBN AND Copia.CodiceLibro=var_CodiceLibro AND PrestitoUtente.DataPrestito=NEW.DataPrestito GROUP BY PrestitoUtente.DataPrestito;
+
+    IF var_numeroCopie=3 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Errore Trigger: si sta cercando di effettuare un prestito di una quarta copia dello stesso libro.';
+    END IF;
+
+END$$
+
+DELIMITER ;
 
 -- -----------------------------------------------------
 -- Users and privileges
@@ -723,6 +796,7 @@ GRANT EXECUTE ON procedure `biblioteca`.`listaCopie` TO 'bibliotecario'@'localho
 GRANT EXECUTE ON procedure `biblioteca`.`listaUtenti` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`listaLibri` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'bibliotecario'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`cambiaPosizione` TO 'bibliotecario'@'localhost';
 
 -- permessi responsabile
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'responsabile'@'localhost';
