@@ -149,10 +149,16 @@ DROP procedure IF EXISTS `biblioteca`.`inserisciUtente`;
 
 DELIMITER $$
 USE `biblioteca`$$
-CREATE PROCEDURE `inserisciUtente` (in var_CF CHAR(16),in var_Nome CHAR(30),in var_Cognome CHAR(30),in var_Sesso ENUM ('Uomo','Donna','Non binario','Preferisco non specificare'),in var_DataNascita DATE,IN var_LuogoNascita CHAR(40),in var_Residenza CHAR(40),in var_MezzoPreferito ENUM ('Email','Cellulare','Telefono di casa'))
+CREATE PROCEDURE `inserisciUtente` (in var_CF CHAR(16),in var_Nome CHAR(30),in var_Cognome CHAR(30),in var_Sesso ENUM ('Uomo','Donna','Non binario','Preferisco non specificare'),in var_DataNascita DATE,IN var_LuogoNascita CHAR(40),in var_Residenza CHAR(40),in var_MezzoPreferito ENUM ('Email','Cellulare','Telefono di casa'),in var_contatto CHAR(100))
 BEGIN
-    insert into `Utente` (`CF`, `Nome`, `Cognome`, `Sesso`, `DataNascita`, `LuogoNascita`, `Residenza`,`MezzoPreferito`)
-                values (var_CF, var_Nome, var_Cognome, var_Sesso, var_DataNascita, var_LuogoNascita, var_Residenza, var_MezzoPreferito);
+    -- registrazione utente
+    INSERT INTO `Utente` (`CF`, `Nome`, `Cognome`, `Sesso`, `DataNascita`, `LuogoNascita`, `Residenza`,`MezzoPreferito`) VALUES (var_CF, var_Nome, var_Cognome, var_Sesso, var_DataNascita, var_LuogoNascita, var_Residenza, var_MezzoPreferito);
+
+    -- Registrazione contatto
+    INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES (var_MezzoPreferito,var_contatto,var_CF);
+
+
+
 END$$
 
 DELIMITER ;
@@ -304,7 +310,25 @@ DELIMITER $$
 CREATE PROCEDURE `reportCopieNonRestituite` ()
 BEGIN
 
-    SELECT `Etichetta` FROM `Copia`, `PrestitoUtente` WHERE `Copia`.`Etichetta`=`PrestitoUtente`.`Copia` AND `PrestitoUtente`.`DataRestituzione` IS NULL;
+    SELECT `PrestitoUtente`.`Copia`,Utente.CF,Utente.Nome,Utente.Cognome,Contatto.Tipo,Contatto.Valore FROM `PrestitoUtente`,Utente,Contatto WHERE PrestitoUtente.Utente=Utente.CF AND Utente.CF=Contatto.Utente AND PrestitoUtente.DataRestituzione IS NULL;
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
+-- procedure reportCopieTrasferite
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `reportCopieTrasferite`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `reportCopieTrasferite` ()
+BEGIN
+
+    SELECT Trasferimenti.Copia,Trasferimenti.DataCessione,Trasferimenti.DataRestituzione,Trasferimenti.Stato,Biblioteca.Indirizzo,Biblioteca.Indirizzo FROM `Trasferimenti`,Biblioteca WHERE Trasferimenti.Biblioteca=Biblioteca.Indirizzo;
 
 END$$
 
@@ -325,17 +349,24 @@ BEGIN
     -- controlliamo che la copia sia effettivamente stata prestata ad/da una biblitoeca esterna
     IF NOT EXISTS (SELECT 1 FROM `Trasferimenti` WHERE `Trasferimenti`.`Copia`=var_Copia AND `Trasferimenti`.`Stato`=var_Stato) THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: non esiste unun  trasferimento relativo a tale copia.';
+        SET MESSAGE_TEXT = 'Errore Trigger: non esiste un trasferimento relativo a tale copia.';
     END IF;
 
     -- controlliamo che non ci sia un prestito in corso con tale copia
-    IF EXISTS (SELECT 1 FROM `PrestitoUtente`, `Trasferimenti`, `Copia` WHERE `Copia`.`Etichetta`=`Trasferimenti`.`Copia` AND `Copia`.`Etichetta`=`PrestitoUtente`.`Copia` AND `PrestitoUtente`.`Copia`=`Trasferimenti`.`Copia` AND `PrestitoUtente`.`Copia`=var_Copia AND `Copia`.`Stato`='Disponibile' AND `Trasferimenti`.`Stato`=var_Stato AND `PrestitoUtente`.`DataRestituzione` IS NULL) THEN
+    IF EXISTS (SELECT 1 FROM `PrestitoUtente`, `Trasferimenti` WHERE `PrestitoUtente`.`Copia`=`Trasferimenti`.`Copia` AND `PrestitoUtente`.`Copia`=var_Copia AND `Trasferimenti`.`Stato`=var_Stato AND `PrestitoUtente`.`DataRestituzione` IS NULL) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Errore Trigger: risultata un prestito utente in corso associato a tale copia.';
     END IF;
 
     -- aggiornamento stato copia trasferita come restituita
     UPDATE `Trasferimenti` SET `DataRestituzione`=var_DataRestituzione WHERE `Copia`=var_Copia AND `Stato`=var_Stato;
+
+    -- aggiornamento stato copia
+    IF var_Stato = 'Prestata a' THEN
+        UPDATE `Copia` SET `Stato`='Disponibile' WHERE `Etichetta`=var_Copia;
+    ELSE
+        UPDATE `Copia` SET `Stato`='Prestata' WHERE `Etichetta`=var_Copia;
+    END IF;
 
 
 END$$
@@ -682,7 +713,7 @@ SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 CREATE USER 'amministratore'@'localhost' IDENTIFIED BY 'amministratore';
 
 -- permessi bibliotecario
-GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'bibliotecario'@'localhost';
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciUtente` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`registraPrestitoUtente` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaUtente` TO 'bibliotecario'@'localhost';
@@ -691,16 +722,26 @@ GRANT EXECUTE ON procedure `biblioteca`.`trasferimentoCopia` TO 'bibliotecario'@
 GRANT EXECUTE ON procedure `biblioteca`.`listaCopie` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`listaUtenti` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`listaLibri` TO 'bibliotecario'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'bibliotecario'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'bibliotecario'@'localhost';
 
 -- permessi responsabile
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'responsabile'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'responsabile'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`reportCopieTrasferite` TO 'responsabile'@'localhost';
 
 -- permessi amministratore
-GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'amministratore'@'localhost'; -- CANCELLARE ASSOLUTAMENTE QUESTA RIGA
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'bibliotecario'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`inserisciUtente` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`registraPrestitoUtente` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaUtente` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`inserisciCopia` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`trasferimentoCopia` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`listaCopie` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`listaUtenti` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`listaLibri` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'amministratore'@'localhost';
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

@@ -36,7 +36,8 @@ public class ResponsabileController implements Controller{
             switch(choice) {
                 case 1 -> inserisciLibro();
                 case 2 -> reportCopieNonRestituite();
-                case 3 -> System.exit(0);
+                case 3 -> reportCopieTrasferite();
+                case 4 -> System.exit(0);
                 default -> throw new RuntimeException("Invalid choice");
                 //aggiungere report copie trasferite
                 //migliorare report copie in prestito aggiungendo anche identificativo dell'utente e contatto
@@ -48,6 +49,15 @@ public class ResponsabileController implements Controller{
 
         try{
             new CopieDAO().reportCopieNonRestituite();
+        }catch(DAOException e) {
+            System.out.println("Stampa lista copie non restituite, non completata con successo: \n"+e.getMessage());
+        }
+    }
+
+    public void reportCopieTrasferite(){
+
+        try{
+            new CopieDAO().reportCopieTrasferite();
         }catch(DAOException e) {
             System.out.println("Stampa lista copie non restituite, non completata con successo: \n"+e.getMessage());
         }

@@ -11,14 +11,15 @@ public class ResponsabileView {
         System.out.println("*** Scegliere un'opzione: ***\n");
         System.out.println("1) Inserimento Libro");
         System.out.println("2) Report Copie in Prestito");
-        System.out.println("3) Quit");
+        System.out.println("3) Report Copie Trasferite");
+        System.out.println("4) Quit");
 
         Scanner input = new Scanner(System.in);
         int choice = 0;
         while (true) {
             System.out.print("Please enter your choice: ");
             choice = input.nextInt();
-            if (choice >= 1 && choice <= 3) {
+            if (choice >= 1 && choice <= 4) {
                 break;
             }
             System.out.println("Invalid option");

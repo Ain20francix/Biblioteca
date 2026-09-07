@@ -37,15 +37,13 @@ public class BibliotecarioController  implements Controller{
                 case 1 -> registraUtente();
                 case 2 -> registraPrestitoUtente();
                 case 3 -> restituzioneCopia();
-                case 4 -> reportCopieNonRestituite(); //togliere
-                case 5 -> inserisciCopia();
-                case 6 -> inserisciLibro(); //togliere
-                case 7 -> trasferimentoCopia();
-                case 8 -> restituzioneCopiaTrasferita();
-                case 9 -> stampaListaCopie();
-                case 10 -> stampaListaLibri();
-                case 11 -> stampaListaUtenti();
-                case 12 -> System.exit(0);
+                case 4 -> inserisciCopia();
+                case 5 -> trasferimentoCopia();
+                case 6 -> restituzioneCopiaTrasferita();
+                case 7 -> stampaListaCopie();
+                case 8 -> stampaListaLibri();
+                case 9 -> stampaListaUtenti();
+                case 10 -> System.exit(0);
                 default -> throw new RuntimeException("Invalid choice");
 
             }
@@ -82,14 +80,16 @@ public class BibliotecarioController  implements Controller{
 
         //Bisogna aggiungere il contatto dell'utente obbligatorio al momento della registrazione
 
-        String []parametri = {"CF", "Nome", "Cognome", "Sesso", "DataNascita", "LuogoNascita", "Residenza", "MezzoPreferito"};
+        String []parametri = {"il codice fiscale", "il nome", "il cognome",
+                "il sesso a scelta tra:\n1)Uomo\n2)Donna\n3)Non binario\n4)Preferisco non specificare\n", "la data di nascita", "la città di nascita", "l'indirizzo di residenza",
+                "il mezzo di contatto preferito a scelta tra:\n1)Cellulare\n2)Telefono di casa\n3)Email\n","il valore del contatto specificato\n"};
         String[] valori = new String[parametri.length];
         Utente u=null;
         int arg=0;
         boolean flag=false;
         String temp="";
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        while(arg<8){
+        while(arg<7){
             flag=false;
             System.out.printf("Inserisci %s:",parametri[arg]);
             try {
@@ -124,10 +124,20 @@ public class BibliotecarioController  implements Controller{
                         }
                         break;
                     case 3:
-                        if(!(temp.equals("Uomo") || temp.equals("Donna") || temp.equals("Non binario") || temp.equals("Preferisco non specificare"))){
-                            System.out.println("Valore non valido, riprovare!\nInserire uno tra i seguenti valori {Uomo,Donna,Non binario,Preferisco non specificare}\n");
+                        if(!(temp.equals("1") || temp.equals("2") || temp.equals("3") || temp.equals("4"))){
+                            System.out.println("Valore non valido, riprovare!\nInserire una tra le opzioni proposte\n");
                             arg--;
                             flag=true;
+                        }else{
+                            if(temp.equals("1")){
+                                valori[arg] = "Uomo";
+                            }else if(temp.equals("2")){
+                                valori[arg] = "Donna";
+                            }else if(temp.equals("3")){
+                                valori[arg] = "Non binario";
+                            }else{
+                                valori[arg] = "Preferisco non specificare";
+                            }
                         }
                         break;
                     case 4:
@@ -162,26 +172,66 @@ public class BibliotecarioController  implements Controller{
                             flag=true;
                         }
                         break;
-                    case 7:
-                        if(!(temp.equals("Email") || temp.equals("Cellulare") || temp.equals("Telefono di casa"))){
-                            System.out.println("Valore non valido, riprovare!\nInserire uno tra i seguenti valori {Email,Cellulare,Telefono di casa}\n");
-                            arg--;
-                            flag=true;
-                        }
-                        break;
                 }
                 if(!flag){
                     valori[arg] = temp;
                 }
             arg++;
         }
+
+        arg=0;
+        while(arg<1) {
+            flag = false;
+            System.out.printf("Inserisci %s:", parametri[arg + 7]);
+            try {
+                temp = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException("Errore di lettura input", e);
+            }
+
+            if (temp.equals("Exit")) {
+                return;
+            }
+
+            if (!(temp.equals("1") || temp.equals("2") || temp.equals("3"))){
+                System.out.println("Valore non valido, riprovare!\nInserire una delle opzioni consigliate\n");
+                arg--;
+                flag=true;
+            }else{
+
+                if(temp.equals("1")){
+                    valori[arg+7] = "Cellulare";
+                }else if(temp.equals("2")){
+                    valori[arg+7] = "Telefono di casa";
+                }else{
+                    valori[arg+7] = "Email";
+                }
+
+                System.out.printf("Inserisci il valore corrispondente:");
+                try {
+                    temp = reader.readLine();
+                } catch (IOException e) {
+                    throw new RuntimeException("Errore di lettura input", e);
+                }
+
+                if(temp.equals("") || temp.length()==0){
+                    System.out.println("Valore non valido, riprovare!\n");
+                    arg--;
+                    flag=true;
+                }else{
+                    valori[arg+8] = temp;
+                }
+            }
+            arg++;
+        }
+
         System.out.println("Fine inserimento parametri\n");
 
         try {
             u = new UtenteDAO().execute(valori);
-            System.out.println("Copia correttamente inserita\n");
+            System.out.println("Utente correttamente registrato\n");
         }  catch(DAOException e) {
-            System.out.println("Operazione non riuscita\n");
+            System.out.println("Operazione non riuscita:\n"+e.getMessage());
         }
     }
 
@@ -291,15 +341,6 @@ public class BibliotecarioController  implements Controller{
             }
     }
 
-    public void reportCopieNonRestituite(){
-
-        try{
-            new CopieDAO().reportCopieNonRestituite();
-        }catch(DAOException e) {
-            System.out.println("Stampa lista copie non restituite, non completata con successo: \n"+e.getMessage());
-        }
-    }
-
     public String inserisciCopia(){
         Copia c;
         String []parametri = {"etichetta della copia", "codice del libro","numero ripiano","numero scaffale"};
@@ -364,85 +405,6 @@ public class BibliotecarioController  implements Controller{
         }
 
         return c.getEtichetta();
-    }
-
-    public void inserisciLibro(){
-        Libro l;
-        String []parametri = {"ISBN del libro", "titolo del libro","casa editrice del libro","genere del libro","nome autore del libro","cognome autore del libro"};
-        String []valori = new String[parametri.length];
-        String []generi={"Biografia", "Autobiografia","Romanzo storico", "Giallo", "Thriller" , "Azione" , "Fantascienza", "Fantasy", "Horror" , "Romanzo di formazione" , "Romanzo Rosa", "Umoristico"};
-        int arg=0;
-        boolean flag=false;
-        String temp="";
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        while(arg<parametri.length) {
-            flag = false;
-            System.out.printf("Inserisci %s:", parametri[arg]);
-            try {
-                temp = reader.readLine();
-            } catch (IOException e) {
-                throw new RuntimeException("Errore di lettura input", e);
-            }
-
-            //Uscita nel caso si volesse interrompere l'operazione
-            if(temp.equals("Exit")){return;}
-
-            switch (arg) {
-                case 0:
-                    if(temp.length()!=17){
-                        System.out.println("Valore non valido, riprovare!\nIl codice ISBN deve avere 17 caratteri, compreso il carattere '-'\n");
-                        arg--;
-                        flag=true;
-                    }
-                    break;
-                case 1:
-                    if(temp.length()>50 || temp.equals("")){
-                        System.out.println("Valore non valido, riprovare!\nIl titolo del libro non deve essere più lungo di 50 caratteri e non può essere vuoto\n");
-                        arg--;
-                        flag=true;
-                    }
-                    break;
-                case 2:
-                    if(temp.length()>40 || temp.equals("")){
-                        System.out.println("Valore non valido, riprovare!\nIl nome della casa editrice non deve essere più lungo di 40 caratteri e non può essere vuoto\n");
-                        arg--;
-                        flag=true;
-                    }
-                    break;
-                case 3:
-                    if(!Arrays.asList(generi).contains(temp)){
-                        System.out.println("Valore non valido, riprovare!\nIl genere deve essere uno tra i seguenti:\n-Biografia\n-Autobiografia\n-Romanzo storico\n-Giallo\n-Thriller\n-Azione\n-Fantascienza\n-Fantasy\n-Horror\n-Romanzo di formazione\n-Romanzo Rosa\n-Umoristico\n");
-                        arg--;
-                        flag=true;
-                    }
-                    break;
-                case 4:
-                    if(temp.length()>30 || temp.equals("")){
-                        System.out.println("Valore non valido, riprovare!\nIl nome dell'autore non può eccedere i 30 caratteri e non può essere vuoto");
-                        arg--;
-                        flag=true;
-                    }
-                    break;
-                case 5:
-                    if(temp.length()>30 || temp.equals("")){
-                        System.out.println("Valore non valido, riprovare!\nIl cognome dell'autore non può eccedere i 30 caratteri e non può essere vuoto");
-                        arg--;
-                        flag=true;
-                    }
-                    break;
-            }
-            if(!flag){
-                valori[arg] = temp;
-            }
-            arg++;
-        }
-
-        try {
-            l = new LibroDAO().execute(valori);
-            System.out.println("Copia correttamente inserita\n");
-        } catch(DAOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void trasferimentoCopia(){

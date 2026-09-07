@@ -17,15 +17,16 @@ public class UtenteDAO implements GenericProcedureDAO<Utente> {
 
         try {
             Connection conn = ConnectionFactory.getConnection();
-            CallableStatement cs = conn.prepareCall("{call inserisciUtente(?,?,?,?,?,?,?,?)}");
-            cs.setString(1, (String) params[0]);
-            cs.setString(2, (String) params[1]);
-            cs.setString(3, (String) params[2]);
-            cs.setString(4, (String) params[3]);
-            cs.setString(5, (String) params[4]);
-            cs.setString(6, (String) params[5]);
-            cs.setString(7, (String) params[6]);
-            cs.setString(8, (String) params[7]);
+            CallableStatement cs = conn.prepareCall("{call inserisciUtente(?,?,?,?,?,?,?,?,?)}");
+            cs.setString(1, (String) params[0]); //CF
+            cs.setString(2, (String) params[1]); //Nome
+            cs.setString(3, (String) params[2]); //Cognome
+            cs.setString(4, (String) params[3]); //Sesso
+            cs.setString(5, (String) params[4]); //DataNascita
+            cs.setString(6, (String) params[5]); //LuogoNascita
+            cs.setString(7, (String) params[6]); //IndirizzoResidenza
+            cs.setString(8, (String) params[7]); //MezzoPreferito
+            cs.setString(9, (String) params[8]); //Contatto
             cs.execute();
 
             System.out.println("fine procedure inserisci_utente");

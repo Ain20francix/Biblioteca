@@ -69,7 +69,27 @@ public class CopieDAO implements GenericProcedureDAO<Copia> {
             }
 
         } catch (SQLException e) {
-            throw new DAOException("Errore lista copie: " + e.getMessage());
+            throw new DAOException("Errore report copie non restituite: " + e.getMessage());
+        }
+    }
+
+    public void reportCopieTrasferite() throws DAOException {
+        try {
+
+            Connection conn = ConnectionFactory.getConnection();
+            CallableStatement cs = conn.prepareCall("{call reportCopieTrasferite()}");
+            System.out.println("prima execute");
+            boolean status = cs.execute();
+            System.out.println("dopo execute");
+
+            if (status) {
+                ResultSet rs = cs.getResultSet();
+                printResultsTable(rs,System.out);
+
+            }
+
+        } catch (SQLException e) {
+            throw new DAOException("Errore report copie trasferite: " + e.getMessage());
         }
     }
 }

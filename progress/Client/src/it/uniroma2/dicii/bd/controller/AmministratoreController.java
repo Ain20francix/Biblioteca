@@ -1,9 +1,49 @@
 package it.uniroma2.dicii.bd.controller;
 
+import it.uniroma2.dicii.bd.model.dao.ConnectionFactory;
+import it.uniroma2.dicii.bd.model.domain.Role;
+import it.uniroma2.dicii.bd.view.AmministratoreView;
+import it.uniroma2.dicii.bd.view.ResponsabileView;
+
+import java.io.IOException;
+import java.sql.SQLException;
+
 public class AmministratoreController implements Controller {
 
     @Override
     public void start() {
-        throw new RuntimeException("Not implemented yet");
+            try {
+                ConnectionFactory.changeRole(Role.AMMINISTRATORE);
+            } catch(SQLException e) {
+                throw new RuntimeException(e);
+            }
+
+            ResponsabileController r = new ResponsabileController();
+            BibliotecarioController b = new BibliotecarioController();
+
+            while(true) {
+                int choice;
+                try {
+                    choice = AmministratoreView.showMenu();
+                } catch(IOException e) {
+                    throw new RuntimeException(e);
+                }
+                switch(choice) {
+                    case 1 -> b.registraUtente();
+                    case 2 -> b.registraPrestitoUtente();
+                    case 3 -> b.restituzioneCopia();
+                    case 4 -> r.reportCopieNonRestituite();
+                    case 5 -> b.inserisciCopia();
+                    case 6 -> r.inserisciLibro();
+                    case 7 -> b.trasferimentoCopia();
+                    case 8 -> b.restituzioneCopiaTrasferita();
+                    case 9 -> b.stampaListaCopie();
+                    case 10 -> b.stampaListaLibri();
+                    case 11 -> b.stampaListaUtenti();
+                    case 12 -> System.exit(0);
+                    default -> throw new RuntimeException("Invalid choice");
+
+                }
+            }
+        }
     }
-}
