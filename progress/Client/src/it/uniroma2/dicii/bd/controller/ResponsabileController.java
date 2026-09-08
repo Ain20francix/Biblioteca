@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Arrays;
 
 public class ResponsabileController implements Controller{
@@ -135,7 +136,7 @@ public class ResponsabileController implements Controller{
         }
 
         try {
-            l = new LibroDAO().execute(valori);
+            l = new LibroDAO().execute(valori[0],valori[1],valori[2],java.sql.Date.valueOf(LocalDate.now()),valori[3],valori[4],valori[5]);
             System.out.println("Copia correttamente inserita\n");
         } catch(DAOException e) {
             throw new RuntimeException(e);

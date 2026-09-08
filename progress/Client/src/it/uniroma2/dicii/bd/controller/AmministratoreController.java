@@ -33,7 +33,7 @@ public class AmministratoreController implements Controller {
                     throw new RuntimeException(e);
                 }
                 switch(choice) {
-                    case 1 -> b.registraUtente();
+                    /*case 1 -> b.registraUtente();
                     case 2 -> b.registraPrestitoUtente();
                     case 3 -> b.restituzioneCopia();
                     case 4 -> r.reportCopieNonRestituite();
@@ -43,9 +43,9 @@ public class AmministratoreController implements Controller {
                     case 8 -> b.restituzioneCopiaTrasferita();
                     case 9 -> stampaListaCopie();
                     case 10 -> stampaListaLibri();
-                    case 11 -> stampaListaUtenti();
-                    case 12 -> dismissione();
-                    case 13 -> System.exit(0);
+                    case 11 -> stampaListaUtenti();*/
+                    case 1 -> dismissione();
+                    case 2 -> System.exit(0);
                     default -> throw new RuntimeException("Opzione invalida");
 
                 }

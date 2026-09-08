@@ -547,7 +547,7 @@ public class BibliotecarioController  implements Controller{
     public void restituzioneCopiaTrasferita(){
 
         //bisogna agggiornare la data restituzione del prestito e rendere la copia nuovamente disponibile
-        String []parametri = {"Copia","indicare una delle seguenti opzioni:\n1)Copia trasferita ad una biblioteca\n2)Copia trasferita da una biblioteca"};
+        String []parametri = {"Copia","indicare una delle seguenti opzioni:\n1)Restituzione di una copia che era stata trasferita ad una biblioteca\n2)Restituzione di una copia trasferita da una biblioteca"};
         String[] valori = new String[parametri.length];
         int arg=0;
         boolean flag=false;

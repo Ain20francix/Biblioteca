@@ -23,6 +23,7 @@ CREATE TABLE Libro(
     Titolo CHAR(50) NOT NULL,
     CasaEditrice CHAR(40) NOT NULL,
     Dismissione BOOLEAN NOT NULL DEFAULT FALSE,
+    DataImmissione DATE NOT NULL,
     Genere ENUM ('Biografia', 'Autobiografia','Romanzo storico', 'Giallo', 'Thriller' , 'Azione' , 'Fantascienza', 'Fantasy', 'Horror' , 'Romanzo di formazione' , 'Romanzo Rosa', 'Umoristico')
 );
 
@@ -239,12 +240,12 @@ DROP PROCEDURE IF EXISTS `inserisciLibro`;
 
 DELIMITER $$
 
-CREATE PROCEDURE `inserisciLibro` (in var_ISBN CHAR(17),in var_Titolo CHAR(50),in var_CaseEditrice CHAR(40),in var_Genere ENUM ('Biografia', 'Autobiografia','Romanzo storico', 'Giallo', 'Thriller' , 'Azione' , 'Fantascienza', 'Fantasy', 'Horror' , 'Romanzo di formazione' , 'Romanzo Rosa', 'Umoristico'),in var_NomeAutore CHAR(30),in var_CognomeAutore CHAR(30))
+CREATE PROCEDURE `inserisciLibro` (in var_ISBN CHAR(17),in var_Titolo CHAR(50),in var_CaseEditrice CHAR(40),in var_dataImmissione DATE,in var_Genere ENUM ('Biografia', 'Autobiografia','Romanzo storico', 'Giallo', 'Thriller' , 'Azione' , 'Fantascienza', 'Fantasy', 'Horror' , 'Romanzo di formazione' , 'Romanzo Rosa', 'Umoristico'),in var_NomeAutore CHAR(30),in var_CognomeAutore CHAR(30))
 BEGIN
 
     -- inserimento dati libro
 
-    INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES (var_ISBN,var_Titolo,var_CaseEditrice,var_Genere);
+    INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES (var_ISBN,var_Titolo,var_CaseEditrice,var_dataImmissione,var_Genere);
 
     -- inserimento dati hascritto
 
@@ -282,8 +283,8 @@ BEGIN
         SET MESSAGE_TEXT = 'Errore Trigger: la biblioteca di destinazione risulta la medesima dalla quale proviene la copia che si sta cercando di trasferire.';
     END IF;
 
-    -- controllo che la copia da trasferire esista
-    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta` = var_Copia) THEN
+    -- controllo che la copia da trasferire esista e non sia stata dismessa
+    IF NOT EXISTS (SELECT 1 FROM `Copia`,`Libro` WHERE `Etichetta` = var_Copia AND `Copia`.`CodiceLibro` AND `Libro`.`Dismissione`=FALSE) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Errore Trigger: la copia non esiste.';
     END IF;
@@ -340,7 +341,7 @@ DELIMITER $$
 CREATE PROCEDURE `reportCopieTrasferite` ()
 BEGIN
 
-    SELECT Trasferimenti.Copia,Trasferimenti.DataCessione,Trasferimenti.DataRestituzione,Trasferimenti.Stato,Biblioteca.Indirizzo,Biblioteca.Indirizzo FROM `Trasferimenti`,Biblioteca WHERE Trasferimenti.Biblioteca=Biblioteca.Indirizzo;
+    SELECT Trasferimenti.Copia,Trasferimenti.DataCessione,COALESCE(Trasferimenti.DataRestituzione,'Non restituita') as DataRestituzione,Trasferimenti.Stato,Biblioteca.Indirizzo,Biblioteca.Indirizzo FROM `Trasferimenti`,Biblioteca WHERE Trasferimenti.Biblioteca=Biblioteca.Indirizzo;
 
 END$$
 
@@ -364,7 +365,9 @@ BEGIN
         SET MESSAGE_TEXT = 'Errore Trigger: non esiste un trasferimento relativo a tale copia.';
     END IF;
 
-    -- controlliamo che non ci sia un prestito in corso con tale copia
+    -- troviamo lo stato della copia
+
+    -- controlliamo che non ci sia un prestito utente in corso con tale copia
     IF EXISTS (SELECT 1 FROM `PrestitoUtente`, `Trasferimenti` WHERE `PrestitoUtente`.`Copia`=`Trasferimenti`.`Copia` AND `PrestitoUtente`.`Copia`=var_Copia AND `Trasferimenti`.`Stato`=var_Stato AND `PrestitoUtente`.`DataRestituzione` IS NULL) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Errore Trigger: risultata un prestito utente in corso associato a tale copia.';
@@ -375,9 +378,9 @@ BEGIN
 
     -- aggiornamento stato copia
     IF var_Stato = 'Prestata a' THEN
-        UPDATE `Copia` SET `Stato`='Disponibile' WHERE `Etichetta`=var_Copia;
+        UPDATE `Copia` SET `Stato`='Disponibile' WHERE `Etichetta`=var_Copia; -- la copia viene segnata come prestabile
     ELSE
-        UPDATE `Copia` SET `Stato`='Prestata' WHERE `Etichetta`=var_Copia;
+        UPDATE `Copia` SET `Stato`='Prestata' WHERE `Etichetta`=var_Copia; -- copia restituita alla biblioteca di appartenenza
     END IF;
 
 
@@ -399,7 +402,7 @@ BEGIN
 
     -- controlliamo che esista una copia disponibile del libro richiesto
 
-    SELECT `Etichetta`,`NumeroRipiano`, `NumeroScaffale` FROM `Copia` WHERE Stato='Disponibile' AND Copia.CodiceLibro=(SELECT Libro.ISBN FROM Libro WHERE Libro.Titolo='Norwegian Wood');
+    SELECT `Etichetta`,COALESCE(`NumeroRipiano`,'Non Disponibile') AS NumeroRipiano,COALESCE(`NumeroScaffale`,'Non Disponibile') AS NumeroScaffale FROM `Copia`,`Libro` WHERE `Copia`.`CodiceLibro`=`Libro`.`ISBN` AND `Libro`.`Dismissione`=FALSE AND Stato='Disponibile' AND Copia.CodiceLibro=var_ISBN;
 
 
 END$$
@@ -418,8 +421,8 @@ DELIMITER $$
 CREATE PROCEDURE `cambiaPosizione` (in var_Copia CHAR(4), in var_NumeroRipiano TINYINT,in var_NumeroScaffale TINYINT)
 BEGIN
 
-    -- controlliamo che la copia sia esistente e disponibile
-    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta`=var_Copia AND `Stato`='Disponibile') THEN
+    -- controlliamo che la copia sia esistente, disponibile e non dismessa
+    IF NOT EXISTS (SELECT 1 FROM `Copia`,`Libro` WHERE `Libro`.`ISBN`=`Copia`.`CodiceLibro` AND `Libro`.`Dismissione`=FALSE AND `Etichetta`=var_Copia AND `Stato`='Disponibile') THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Errore Trigger: non esiste tale copia.';
     END IF;
@@ -444,8 +447,10 @@ DELIMITER $$
 CREATE PROCEDURE `dismissione` ()
 BEGIN
 
-    UPDATE `Libro` SET `Dismissione` = TRUE WHERE `Dismissione` = FALSE AND `ISBN` NOT IN (
-          -- Seleziono i libri che hanno avuto almeno un prestito negli ultimi 10 anni
+    -- escludo i libri che magari sono appena stati immessi nel sistema
+
+    UPDATE `Libro` SET `Dismissione` = TRUE WHERE `Dismissione` = FALSE AND `DataImmissione` <= DATE_SUB(CURDATE(), INTERVAL 10 YEAR) AND `ISBN` NOT IN (
+          -- seleziono i libri che hanno avuto almeno un prestito negli ultimi 10 anni
           SELECT C.CodiceLibro FROM `PrestitoUtente` P, `Copia` C WHERE P.Copia = C.Etichetta AND P.DataPrestito >= DATE_SUB(CURDATE(), INTERVAL 10 YEAR));
 
 
@@ -548,17 +553,17 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-81-7525-766-5','La fattoria di zio Tobia','Feltrinelli','Umoristico');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-82-7525-766-5','Io non ho paura','Feltrinelli','Thriller');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-84-7525-766-5','Esercito delle cose inutili','Feltrinelli','Romanzo di formazione');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-04-55555-1','Il nome della rosa','Bompiani','Romanzo Rosa');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-06-12345-2','Se questo è un uomo','Einaudi','Romanzo storico');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-17-98765-3','Il barone rampante','Mondadori','Fantasy');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-07-88888-4','Così parlò Bellavista','Feltrinelli','Autobiografia');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-11-11111-5','La solitudine dei numeri primi','Mondadori','Fantascienza');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-06-22222-6','Pastorale americana','Einaudi','Romanzo di formazione');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-04-33333-7','Cent’anni di solitudine','Mondadori','Giallo');
-INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `Genere`) VALUES ('978-88-07-44444-8','Norwegian Wood','Feltrinelli','Azione');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-81-7525-766-5','La fattoria di zio Tobia','Feltrinelli','2010-05-18','Umoristico');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-82-7525-766-5','Io non ho paura','Feltrinelli','2026-05-18','Thriller');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-84-7525-766-5','Esercito delle cose inutili','Feltrinelli','2025-05-18','Romanzo di formazione');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-88-04-55555-1','Il nome della rosa','Bompiani','2026-06-30','Romanzo Rosa');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-88-06-12345-2','Se questo è un uomo','Einaudi','2026-01-11','Romanzo storico');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-88-17-98765-3','Il barone rampante','Mondadori','2026-12-18','Fantasy');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-88-07-88888-4','Così parlò Bellavista','Feltrinelli','2026-09-25','Autobiografia');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-88-11-11111-5','La solitudine dei numeri primi','Mondadori','2020-04-18','Fantascienza');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-88-06-22222-6','Pastorale americana','Einaudi','2008-05-18','Romanzo di formazione');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-88-04-33333-7','Cent’anni di solitudine','Mondadori','2013-06-08','Giallo');
+INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES ('978-88-07-44444-8','Norwegian Wood','Feltrinelli','2014-03-19','Azione');
 
 COMMIT;
 
@@ -639,6 +644,7 @@ INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Telefono di casa','0
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','3365951424','CLTMRK88T25Z110X');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Telefono di casa','0678126598','FRRMRC95L50H501J');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','3281556774','SMTSRA00E65Z100L');
+INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','3263636554','RSSMRA85M01F205Z');
 
 COMMIT;
 
@@ -649,7 +655,7 @@ START TRANSACTION;
 
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0004','2026-05-19','NRMSFN01A41Z133Y',NULL,'1');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0005','2026-07-14','SMTSRA00E65Z100L','2026-08-28','3');
-INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0011','2026-07-14','AGSRWQ78G56D211H',NULL,'2');
+INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0011','2015-07-14','AGSRWQ78G56D211H',NULL,'2');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0001','2010-07-14','AGSRWQ78G56D211H','2010-08-12','2');
 
 COMMIT;
@@ -679,7 +685,7 @@ COMMIT;
 START TRANSACTION;
 
 INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES ('0008','2024-08-16','Via dei Tre Pupazzi',NULL,'Prestata a');
-INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES ('0011','2026-12-02','Viale Angelico',NULL,'Prestata da');
+INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES ('0011','2015-01-02','Viale Angelico',NULL,'Prestata da');
 
 COMMIT;
 

@@ -9,7 +9,7 @@ public class AmministratoreView {
         System.out.println("*    LIBRARY MENU    *");
         System.out.println("*********************************\n");
         System.out.println("*** Scegliere una delle seguenti opzioni ***\n");
-        System.out.println("1) Registrazione Utente");
+        /*System.out.println("1) Registrazione Utente");
         System.out.println("2) Registrazione Prestito Utente");
         System.out.println("3) Restituzione Copia Prestito Utente");
         System.out.println("4) Report Copie in Prestito");
@@ -19,16 +19,16 @@ public class AmministratoreView {
         System.out.println("8) Restituzione Copia Trasferita");
         System.out.println("9) Stampa lista copie");
         System.out.println("10) Stampa lista libri");
-        System.out.println("11) Stampa lista utenti");
-        System.out.println("12) Dismissione libri");
-        System.out.println("13) Esci");
+        System.out.println("11) Stampa lista utenti");*/
+        System.out.println("1) Dismissione libri");
+        System.out.println("2) Esci");
 
         Scanner input = new Scanner(System.in);
         int choice = 0;
         while (true) {
             System.out.print("Inserire l'opzione desiderata: ");
             choice = input.nextInt();
-            if (choice >= 1 && choice <= 13) {
+            if (choice >= 1 && choice <= 2) {
                 break;
             }
             System.out.println("Opzione invalida");

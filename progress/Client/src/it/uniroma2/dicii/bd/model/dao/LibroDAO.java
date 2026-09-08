@@ -5,10 +5,7 @@ import it.uniroma2.dicii.bd.model.domain.Copia;
 import it.uniroma2.dicii.bd.model.domain.Libro;
 import it.uniroma2.dicii.bd.model.domain.StampaResultSet;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 import it.uniroma2.dicii.bd.model.domain.StampaResultSet;
 
@@ -20,15 +17,16 @@ public class LibroDAO implements GenericProcedureDAO<Libro> {
             //CREATE PROCEDURE `inserisciCopia` (in var_Etichetta CHAR(4),in var_CodiceLibro CHAR(17),in var_NumeroRipiano TINYINT,in var_NumeroScaffale TINYINT)
             try {
                 Connection conn = ConnectionFactory.getConnection();
-                CallableStatement cs = conn.prepareCall("{call inserisciLibro(?,?,?,?,?,?)}");
+                CallableStatement cs = conn.prepareCall("{call inserisciLibro(?,?,?,?,?,?,?)}");
                 //Parametri libro
                 cs.setString(1, (String) params[0]);    //ISBN
                 cs.setString(2, (String) params[1]);    //Titolo
                 cs.setString(3, (String) params[2]);    //CaseEditrice
-                cs.setString(4, (String) params[3]);    //Genere
-                //Paraemtri autore
-                cs.setString(5, (String) params[4]);    //NomeAutore
-                cs.setString(6, (String) params[5]);    //CognomeAutore
+                cs.setDate(4, (Date) params[3]);        //DataImmissione
+                cs.setString(5, (String) params[3]);    //Genere
+                //Parametri autore
+                cs.setString(6, (String) params[5]);    //NomeAutore
+                cs.setString(7, (String) params[6]);    //CognomeAutore
                 cs.execute();
 
             } catch (SQLException e) {
