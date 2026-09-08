@@ -46,12 +46,10 @@ public class BibliotecarioController  implements Controller{
                 case 4 -> inserisciCopia();
                 case 5 -> trasferimentoCopia();
                 case 6 -> restituzioneCopiaTrasferita();
-                case 7 -> stampaListaCopie();
-                case 8 -> stampaListaLibri();
-                case 9 -> stampaListaUtenti();
-                case 10 -> cambiaPosizione();
-                case 11 -> cercaCopia();
-                case 12 -> System.exit(0);
+                case 7 -> stampaListaUtenti();
+                case 8 -> cambiaPosizione();
+                case 9 -> cercaCopia();
+                case 10 -> System.exit(0);
                 default -> throw new RuntimeException("Opzione invalida");
 
             }
@@ -90,7 +88,7 @@ public class BibliotecarioController  implements Controller{
             System.out.println("Stampa lista copie non completata con successo\n");
         }
 
-    }
+    } //vedere se può essere riutilizzato
 
     public void stampaListaUtenti(){
         try{
@@ -259,7 +257,7 @@ public class BibliotecarioController  implements Controller{
         }  catch(DAOException e) {
             System.out.println("Operazione non riuscita:\n"+e.getMessage());
         }
-    }           //OK
+    }
 
     public void registraPrestitoUtente(){
 
@@ -320,7 +318,7 @@ public class BibliotecarioController  implements Controller{
         }catch(DAOException e){
             System.out.println("Operazione non riuscita\n"+e.getMessage());
         }
-    }    //OK
+    }
 
     public void restituzioneCopia(){
         String []parametri = {"Copia"};
@@ -362,7 +360,7 @@ public class BibliotecarioController  implements Controller{
             System.out.println("Operazione non riuscita\n");
             throw new RuntimeException(e);
         }
-    }           //OK
+    }
 
     public String inserisciCopia(){
 

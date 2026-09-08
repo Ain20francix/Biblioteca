@@ -32,13 +32,14 @@ public class ResponsabileController implements Controller{
                 throw new RuntimeException(e);
             }
 
+            BibliotecarioController b = new BibliotecarioController();
+
             switch(choice) {
                 case 1 -> inserisciLibro();
                 case 2 -> reportCopieNonRestituite();
                 case 3 -> reportCopieTrasferite();
                 case 4 -> System.exit(0);
-                default -> throw new RuntimeException("Invalid choice");
-                //aggiungere report copie trasferite
+                default -> throw new RuntimeException("Opzione invalida");
                 //migliorare report copie in prestito aggiungendo anche identificativo dell'utente e contatto
             }
         }

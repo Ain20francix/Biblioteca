@@ -20,14 +20,15 @@ public class AmministratoreView {
         System.out.println("9) Stampa lista copie");
         System.out.println("10) Stampa lista libri");
         System.out.println("11) Stampa lista utenti");
-        System.out.println("12) Esci");
+        System.out.println("12) Dismissione libri");
+        System.out.println("13) Esci");
 
         Scanner input = new Scanner(System.in);
         int choice = 0;
         while (true) {
             System.out.print("Inserire l'opzione desiderata: ");
             choice = input.nextInt();
-            if (choice >= 1 && choice <= 12) {
+            if (choice >= 1 && choice <= 13) {
                 break;
             }
             System.out.println("Opzione invalida");

@@ -12,14 +12,14 @@ public class ApplicationController implements Controller {
         cred = loginController.getCred();
 
         if(cred.getRole() == null) {
-            throw new RuntimeException("Invalid credentials");
+            throw new RuntimeException("Credenziali invalide");
         }
 
         switch(cred.getRole()) {
             case BIBLIOTECARIO  -> new BibliotecarioController().start();
             case RESPONSABILE   -> new ResponsabileController().start();
             case AMMINISTRATORE -> new AmministratoreController().start();
-            default -> throw new RuntimeException("Invalid credentials");
+            default -> throw new RuntimeException("Credenziali invalide");
         }
     }
 }

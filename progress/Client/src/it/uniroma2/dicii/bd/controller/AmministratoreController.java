@@ -44,8 +44,9 @@ public class AmministratoreController implements Controller {
                     case 9 -> stampaListaCopie();
                     case 10 -> stampaListaLibri();
                     case 11 -> stampaListaUtenti();
-                    case 12 -> System.exit(0);
-                    default -> throw new RuntimeException("Invalid choice");
+                    case 12 -> dismissione();
+                    case 13 -> System.exit(0);
+                    default -> throw new RuntimeException("Opzione invalida");
 
                 }
             }
@@ -75,4 +76,13 @@ public class AmministratoreController implements Controller {
         }
 
     }
+
+        public void dismissione(){
+            try{
+                new CopieDAO().dismissione();
+            }catch(DAOException e) {
+                System.out.println("Dismissione libri, non completata con usccesso: \n"+e.getMessage());
+            }
+        }
+
     }

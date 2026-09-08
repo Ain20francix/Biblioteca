@@ -22,6 +22,7 @@ CREATE TABLE Libro(
     ISBN CHAR(17) PRIMARY KEY NOT NULL,
     Titolo CHAR(50) NOT NULL,
     CasaEditrice CHAR(40) NOT NULL,
+    Dismissione BOOLEAN NOT NULL DEFAULT FALSE,
     Genere ENUM ('Biografia', 'Autobiografia','Romanzo storico', 'Giallo', 'Thriller' , 'Azione' , 'Fantascienza', 'Fantasy', 'Horror' , 'Romanzo di formazione' , 'Romanzo Rosa', 'Umoristico')
 );
 
@@ -432,6 +433,27 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- procedure dismissione
+-- -----------------------------------------------------
+
+USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `dismissione`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `dismissione` ()
+BEGIN
+
+    UPDATE `Libro` SET `Dismissione` = TRUE WHERE `Dismissione` = FALSE AND `ISBN` NOT IN (
+          -- Seleziono i libri che hanno avuto almeno un prestito negli ultimi 10 anni
+          SELECT C.CodiceLibro FROM `PrestitoUtente` P, `Copia` C WHERE P.Copia = C.Etichetta AND P.DataPrestito >= DATE_SUB(CURDATE(), INTERVAL 10 YEAR));
+
+
+END$$
+
+DELIMITER ;
+
+-- -----------------------------------------------------
 -- procedure listaCopie
 -- -----------------------------------------------------
 
@@ -443,7 +465,7 @@ DELIMITER $$
 CREATE PROCEDURE `listaCopie` ()
 BEGIN
 
-    SELECT * FROM `Copia`;
+    SELECT * FROM `Copia`,`Libro` WHERE `Copia`.`CodiceLibro`=`Libro`.`ISBN` AND `Libro`.`Dismissione`=FALSE;
 
 END$$
 
@@ -628,6 +650,7 @@ START TRANSACTION;
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0004','2026-05-19','NRMSFN01A41Z133Y',NULL,'1');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0005','2026-07-14','SMTSRA00E65Z100L','2026-08-28','3');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0011','2026-07-14','AGSRWQ78G56D211H',NULL,'2');
+INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0001','2010-07-14','AGSRWQ78G56D211H','2010-08-12','2');
 
 COMMIT;
 
@@ -836,7 +859,6 @@ SET SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 CREATE USER 'amministratore'@'localhost' IDENTIFIED BY 'amministratore';
 
 -- permessi bibliotecario
--- GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciUtente` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`registraPrestitoUtente` TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaUtente` TO 'bibliotecario'@'localhost';
@@ -856,7 +878,6 @@ GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'responsab
 GRANT EXECUTE ON procedure `biblioteca`.`reportCopieTrasferite` TO 'responsabile'@'localhost';
 
 -- permessi amministratore
--- GRANT SELECT, INSERT, UPDATE, DELETE ON biblioteca.* TO 'bibliotecario'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciUtente` TO 'amministratore'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`registraPrestitoUtente` TO 'amministratore'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaUtente` TO 'amministratore'@'localhost';
@@ -869,9 +890,13 @@ GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'ammini
 GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'amministratore'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'amministratore'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`listaBiblioteche` TO 'amministratore'@'localhost';
+GRANT EXECUTE ON procedure `biblioteca`.`dismissione` TO 'amministratore'@'localhost';
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 
-/**/
+
+-- -----------------------------------------------------
+-- Eventi temporizzati
+-- -----------------------------------------------------

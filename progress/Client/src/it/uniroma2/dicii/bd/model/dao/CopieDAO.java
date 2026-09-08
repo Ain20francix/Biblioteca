@@ -121,6 +121,18 @@ public class CopieDAO implements GenericProcedureDAO<Copia> {
             throw new DAOException("Errore nella ricerca di una copia: " + e.getMessage());
         }
     }
+
+    public void dismissione() throws DAOException {
+        try {
+
+            Connection conn = ConnectionFactory.getConnection();
+            CallableStatement cs = conn.prepareCall("{call dismissione()}");
+            cs.execute();
+
+        } catch (SQLException e) {
+            throw new DAOException("Errore dismissione fallita: " + e.getMessage());
+        }
+    }
 }
 
 
