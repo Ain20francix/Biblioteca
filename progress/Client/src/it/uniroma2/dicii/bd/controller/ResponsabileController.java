@@ -68,7 +68,7 @@ public class ResponsabileController implements Controller{
         Libro l;
         String []parametri = {"ISBN del libro", "titolo del libro","casa editrice del libro","genere del libro","nome autore del libro","cognome autore del libro"};
         String []valori = new String[parametri.length];
-        String []generi={"Biografia", "Autobiografia","Romanzo storico", "Giallo", "Thriller" , "Azione" , "Fantascienza", "Fantasy", "Horror" , "Romanzo di formazione" , "Romanzo Rosa", "Umoristico"};
+        String []generi={"Arte e Fotografia", "Autobiografia", "Avventura", "Azione", "Bambini e Ragazzi", "Biografia", "Classici", "Cucina e Gastronomia", "Diritto", "Economia e Finanza", "Fantascienza", "Fantasy", "Filosofia", "Fumetti e Graphic Novel", "Giallo", "Hobbistica e Tempo libero", "Horror", "Informatica e Tecnologia", "Medicina e Salute", "Narrativa Contemporanea", "Poesia", "Psicologia", "Religione e Spiritualità", "Romanzo di formazione", "Romanzo Rosa", "Romanzo storico", "Saggistica", "Scienze", "Self-help e Crescita Personale", "Storia", "Teatro", "Thriller", "Umoristico", "Viaggi"};
         int arg=0;
         boolean flag=false;
         String temp="";
@@ -109,7 +109,12 @@ public class ResponsabileController implements Controller{
                     break;
                 case 3:
                     if(!Arrays.asList(generi).contains(temp)){
-                        System.out.println("Valore non valido, riprovare!\nIl genere deve essere uno tra i seguenti:\n-Biografia\n-Autobiografia\n-Romanzo storico\n-Giallo\n-Thriller\n-Azione\n-Fantascienza\n-Fantasy\n-Horror\n-Romanzo di formazione\n-Romanzo Rosa\n-Umoristico\n");
+                        System.out.println("Valore non valido, riprovare!\nIl genere deve essere uno tra i seguenti:\n-Arte e Fotografia\n" +
+                                "-Autobiografia\n-Avventura\n-Azione\n-Bambini e Ragazzi\n-Biografia\n-Classici\n-Cucina e Gastronomia\n" +
+                                "-Diritto\n-Economia e Finanza\n-Fantascienza\n-Fantasy\n-Filosofia\n-Fumetti e Graphic Novel\n" +
+                                "-Giallo\n-Hobbistica e Tempo libero\n-Horror\n-Informatica e Tecnologia\n-Medicina e Salute\n" +
+                                "-Narrativa Contemporanea\n-Poesia\n-Psicologia\n-Religione e Spiritualità\n-Romanzo di formazione\n" +
+                                "-Romanzo Rosa\n-Romanzo storico\n-Saggistica\n-Scienze\n-Self-help e Crescita Personale\n-Storia\n-Teatro\n-Thriller\n-Umoristico\n-Viaggi\n");
                         arg--;
                         flag=true;
                     }

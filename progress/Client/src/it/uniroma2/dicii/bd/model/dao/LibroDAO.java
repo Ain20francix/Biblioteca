@@ -14,8 +14,7 @@ public class LibroDAO implements GenericProcedureDAO<Libro> {
         @Override
         public Libro execute(Object... params) throws DAOException {
 
-            //CREATE PROCEDURE `inserisciCopia` (in var_Etichetta CHAR(4),in var_CodiceLibro CHAR(17),in var_NumeroRipiano TINYINT,in var_NumeroScaffale TINYINT)
-            try {
+           try {
                 Connection conn = ConnectionFactory.getConnection();
                 CallableStatement cs = conn.prepareCall("{call inserisciLibro(?,?,?,?,?,?,?)}");
                 //Parametri libro
@@ -23,7 +22,7 @@ public class LibroDAO implements GenericProcedureDAO<Libro> {
                 cs.setString(2, (String) params[1]);    //Titolo
                 cs.setString(3, (String) params[2]);    //CaseEditrice
                 cs.setDate(4, (Date) params[3]);        //DataImmissione
-                cs.setString(5, (String) params[3]);    //Genere
+                cs.setString(5, (String) params[4]);    //Genere
                 //Parametri autore
                 cs.setString(6, (String) params[5]);    //NomeAutore
                 cs.setString(7, (String) params[6]);    //CognomeAutore
@@ -32,8 +31,8 @@ public class LibroDAO implements GenericProcedureDAO<Libro> {
             } catch (SQLException e) {
                 throw new DAOException("Errore inserimento libro: " + e.getMessage());
             }
-
-            return new Libro((String) params[0],(String) params[1],(String) params[2],(String) params[3]);
+            //(String ISBN, String Titolo, String CasaEditrice, boolean Dismissione, LocalDate DataImmissione, String Genere)
+            return new Libro((String) params[0],(String) params[1],(String) params[2],false,((Date)params[3]).toLocalDate(),(String) params[4]);
         }
 
         public void listaLibri() throws DAOException {

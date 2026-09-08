@@ -24,7 +24,41 @@ CREATE TABLE Libro(
     CasaEditrice CHAR(40) NOT NULL,
     Dismissione BOOLEAN NOT NULL DEFAULT FALSE,
     DataImmissione DATE NOT NULL,
-    Genere ENUM ('Biografia', 'Autobiografia','Romanzo storico', 'Giallo', 'Thriller' , 'Azione' , 'Fantascienza', 'Fantasy', 'Horror' , 'Romanzo di formazione' , 'Romanzo Rosa', 'Umoristico')
+    Genere ENUM (
+    'Arte e Fotografia',
+    'Autobiografia',
+    'Avventura',
+    'Azione',
+    'Bambini e Ragazzi',
+    'Biografia',
+    'Classici',
+    'Cucina e Gastronomia',
+    'Diritto',
+    'Economia e Finanza',
+    'Fantascienza',
+    'Fantasy',
+    'Filosofia',
+    'Fumetti e Graphic Novel',
+    'Giallo',
+    'Hobbistica e Tempo libero',
+    'Horror',
+    'Informatica e Tecnologia',
+    'Medicina e Salute',
+    'Narrativa Contemporanea',
+    'Poesia',
+    'Psicologia',
+    'Religione e Spiritualità',
+    'Romanzo di Formazione',
+    'Romanzo Rosa',
+    'Romanzo Storico',
+    'Saggistica',
+    'Scienze',
+    'Self-help e Crescita Personale',
+    'Storia',
+    'Teatro',
+    'Thriller',
+    'Umoristico',
+    'Viaggi')
 );
 
 DROP TABLE IF EXISTS `biblioteca`.`HaScritto`;
@@ -240,7 +274,7 @@ DROP PROCEDURE IF EXISTS `inserisciLibro`;
 
 DELIMITER $$
 
-CREATE PROCEDURE `inserisciLibro` (in var_ISBN CHAR(17),in var_Titolo CHAR(50),in var_CaseEditrice CHAR(40),in var_dataImmissione DATE,in var_Genere ENUM ('Biografia', 'Autobiografia','Romanzo storico', 'Giallo', 'Thriller' , 'Azione' , 'Fantascienza', 'Fantasy', 'Horror' , 'Romanzo di formazione' , 'Romanzo Rosa', 'Umoristico'),in var_NomeAutore CHAR(30),in var_CognomeAutore CHAR(30))
+CREATE PROCEDURE `inserisciLibro` (in var_ISBN CHAR(17),in var_Titolo CHAR(50),in var_CaseEditrice CHAR(40),in var_dataImmissione DATE,in var_Genere ENUM ('Arte e Fotografia','Autobiografia','Avventura','Azione','Bambini e Ragazzi','Biografia','Classici','Cucina e Gastronomia','Diritto','Economia e Finanza','Fantascienza','Fantasy','Filosofia','Fumetti e Graphic Novel','Giallo','Hobbistica e Tempo libero','Horror','Informatica e Tecnologia','Medicina e Salute','Narrativa Contemporanea','Poesia','Psicologia','Religione e Spiritualità','Romanzo di Formazione','Romanzo Rosa','Romanzo Storico','Saggistica','Scienze','Self-help e Crescita Personale','Storia','Teatro','Thriller','Umoristico','Viaggi'),in var_NomeAutore CHAR(30),in var_CognomeAutore CHAR(30))
 BEGIN
 
     -- inserimento dati libro
@@ -323,11 +357,88 @@ DELIMITER $$
 CREATE PROCEDURE `reportCopieNonRestituite` ()
 BEGIN
 
-    SELECT `PrestitoUtente`.`Copia`,Utente.CF,Utente.Nome,Utente.Cognome,Contatto.Tipo,Contatto.Valore FROM `PrestitoUtente`,Utente,Contatto WHERE PrestitoUtente.Utente=Utente.CF AND Utente.CF=Contatto.Utente AND PrestitoUtente.DataRestituzione IS NULL;
+    -- Variabili per leggere i dati dal cursore
+    DECLARE var_Copia CHAR(4);
+    DECLARE var_CF CHAR(16);
+    DECLARE var_Nome VARCHAR(30);
+    DECLARE var_Cognome VARCHAR(30);
+    DECLARE var_Tipo ENUM('Email','Cellulare','Telefono di casa');
+    DECLARE var_Valore CHAR(100);
+    DECLARE var_DataPrestito DATE;
+    DECLARE var_DurataConsultazioneEspressa ENUM('1','2','3');
+
+    -- Variabile per calcolare lo stato del prestito e l'handler per il loop
+    DECLARE var_StatoPrestito VARCHAR(20);
+    DECLARE done INT DEFAULT FALSE;
+
+
+    DECLARE cur_prestiti CURSOR FOR
+        SELECT P.Copia, U.CF, U.Nome, U.Cognome, C.Tipo, C.Valore,P.DataPrestito, P.DurataConsultazioneEspressa
+        FROM `PrestitoUtente` P JOIN `Utente` U ON P.Utente = U.CF JOIN `Contatto` C ON U.CF = C.Utente
+        WHERE P.DataRestituzione IS NULL;
+
+    -- Handler per uscire dal ciclo quando finiscono le righe
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Tabella temporanea per restituire il ResultSet
+    DROP TEMPORARY TABLE IF EXISTS `TempReportNonRestituiti`;
+    CREATE TEMPORARY TABLE IF NOT EXISTS `TempReportNonRestituiti` (
+        `Copia` CHAR(4),
+        `CF` CHAR(16),
+        `Nome` VARCHAR(30),
+        `Cognome` VARCHAR(30),
+        `Tipo` VARCHAR(30),
+        `Valore` VARCHAR(100),
+        `DataPrestito` DATE,
+        `DurataConsultazioneEspressa` ENUM('1','2','3'),
+        `StatoPrestito` VARCHAR(20)
+    );
+
+    -- Ciclo sulle righe
+    OPEN cur_prestiti;
+
+    read_loop: LOOP
+
+        FETCH cur_prestiti INTO
+            var_Copia, var_CF, var_Nome, var_Cognome,var_Tipo, var_Valore, var_DataPrestito, var_DurataConsultazioneEspressa;
+
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        IF DATE_ADD(var_DataPrestito, INTERVAL CAST(var_DurataConsultazioneEspressa AS UNSIGNED) MONTH) < CURDATE() THEN
+            SET var_StatoPrestito = 'Prestito Scaduto';
+        ELSE
+            SET var_StatoPrestito = 'Prestito regolare';
+        END IF;
+
+        INSERT INTO `TempReportNonRestituiti` (`Copia`, `CF`, `Nome`, `Cognome`, `Tipo`, `Valore`, `DataPrestito`, `DurataConsultazioneEspressa` ,`StatoPrestito`) VALUES (var_Copia, var_CF, var_Nome, var_Cognome, var_Tipo, var_Valore, var_DataPrestito, var_DurataConsultazioneEspressa ,var_StatoPrestito);
+
+    END LOOP;
+
+    CLOSE cur_prestiti;
+
+    SELECT * FROM `TempReportNonRestituiti`;
+
+    DROP TEMPORARY TABLE IF EXISTS `TempReportNonRestituiti`;
 
 END$$
 
 DELIMITER ;
+
+/*USE `biblioteca`;
+DROP PROCEDURE IF EXISTS `reportCopieNonRestituite`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `reportCopieNonRestituite` ()
+BEGIN
+
+    SELECT `PrestitoUtente`.`Copia`,Utente.CF,Utente.Nome,Utente.Cognome,Contatto.Tipo,Contatto.Valore FROM `PrestitoUtente`,Utente,Contatto WHERE PrestitoUtente.Utente=Utente.CF AND Utente.CF=Contatto.Utente AND PrestitoUtente.DataRestituzione IS NULL;
+
+END$$
+
+DELIMITER ;*/
 
 -- -----------------------------------------------------
 -- procedure reportCopieTrasferite
@@ -421,10 +532,12 @@ DELIMITER $$
 CREATE PROCEDURE `cambiaPosizione` (in var_Copia CHAR(4), in var_NumeroRipiano TINYINT,in var_NumeroScaffale TINYINT)
 BEGIN
 
-    -- controlliamo che la copia sia esistente, disponibile e non dismessa
-    IF NOT EXISTS (SELECT 1 FROM `Copia`,`Libro` WHERE `Libro`.`ISBN`=`Copia`.`CodiceLibro` AND `Libro`.`Dismissione`=FALSE AND `Etichetta`=var_Copia AND `Stato`='Disponibile') THEN
+    -- una copia anche se dismessa bisogna permettere di spostarla di posizione in quanto permane nella biblioteca
+
+    -- controlliamo che la copia sia esistente e disponibile
+    IF NOT EXISTS (SELECT 1 FROM `Copia` WHERE `Etichetta`=var_Copia AND `Stato`='Disponibile') THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: non esiste tale copia.';
+        SET MESSAGE_TEXT = 'Errore Trigger: non esiste tale copia/non risulta disponibile.';
     END IF;
 
     -- aggiorniamo la posizione della copia nella biblioteca
@@ -641,6 +754,7 @@ INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','34256894
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Telefono di casa','0648554879','BNCGLI90C42Z100W');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Email','lucasgreen@yahoo.com','VRDLCU92P14F839K');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Telefono di casa','0652889136','NRMSFN01A41Z133Y');
+INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Email','posterina@gmail.com','NRMSFN01A41Z133Y');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','3365951424','CLTMRK88T25Z110X');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Telefono di casa','0678126598','FRRMRC95L50H501J');
 INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES ('Cellulare','3281556774','SMTSRA00E65Z100L');
@@ -653,7 +767,7 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 
-INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0004','2026-05-19','NRMSFN01A41Z133Y',NULL,'1');
+INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0004','2026-08-19','NRMSFN01A41Z133Y',NULL,'2');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0005','2026-07-14','SMTSRA00E65Z100L','2026-08-28','3');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0011','2015-07-14','AGSRWQ78G56D211H',NULL,'2');
 INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES ('0001','2010-07-14','AGSRWQ78G56D211H','2010-08-12','2');

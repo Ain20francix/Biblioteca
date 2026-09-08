@@ -80,6 +80,7 @@ public class AmministratoreController implements Controller {
         public void dismissione(){
             try{
                 new CopieDAO().dismissione();
+                System.out.println("Dismissione copie di libri non prestati da più di 10 anni, avvenuta con successo!");
             }catch(DAOException e) {
                 System.out.println("Dismissione libri, non completata con usccesso: \n"+e.getMessage());
             }
