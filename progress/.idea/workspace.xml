@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="74ec20e9-034f-42c3-b784-996f3687bd5f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/airports_CD2n1w.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/airports_CD2n1w2.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/libs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Biblioteca_Progetto.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/.idea/data_source_mapping.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/.idea/libraries/mysql_connector_j_9_5_0.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/Archive.zip" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/Client.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/client-java.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/libs/mariadb-java-client-3.0.8.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/libs/mysql-connector-j-8.0.31.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/controller/AgenziaController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/controller/AmministratoreController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/controller/ApplicationController$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/controller/ApplicationController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/controller/Controller.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/controller/LoginController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/exception/DAOException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/dao/BookingListProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/dao/ConnectionFactory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/dao/GenericProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/dao/LoginProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/domain/BookingFlight.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/domain/BookingList.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/domain/Credentials.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/domain/Passenger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/model/domain/Role.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/view/AgenziaView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/Client/it/uniroma2/dicii/bd/view/LoginView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/db.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/controller/AgenziaController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/controller/AmministratoreController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/controller/ApplicationController$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/controller/ApplicationController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/controller/Controller.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/controller/LoginController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/exception/DAOException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/dao/BookingListProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/dao/ConnectionFactory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/dao/GenericProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/dao/LoginProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/domain/BookingFlight.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/domain/BookingList.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/domain/Credentials.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/domain/Passenger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/model/domain/Role.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/view/AgenziaView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/client-java/it/uniroma2/dicii/bd/view/LoginView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/jdbc/it/uniroma2/dicii/bd/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/jdbc/it/uniroma2/dicii/bd/model/Actor.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/jdbc/it/uniroma2/dicii/bd/model/Film.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/jdbc/it/uniroma2/dicii/bd/model/dao/ActorDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/jdbc/it/uniroma2/dicii/bd/model/dao/FilmActorDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/out/production/jdbc/it/uniroma2/dicii/bd/model/dao/FilmDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/resources/db.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/controller/AmministratoreController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/controller/ApplicationController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/controller/BibliotecarioController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/controller/Controller.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/controller/LoginController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/controller/ResponsabileController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/exception/DAOException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/dao/ConnectionFactory.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/dao/CopieDAO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/dao/GenericProcedureDAO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/dao/LibroDAO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/dao/LoginProcedureDAO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/dao/PrestitoUtenteDAO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/dao/TrasferimentoDAO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/dao/UtenteDAO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/BookingFlight.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/BookingList.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/Copia.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/Credentials.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/Libro.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/Passenger.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/PrestitoUtente.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/Role.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/StampaResultSet.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/Trasferimento.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/model/domain/Utente.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/view/AmministratoreView.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/view/BibliotecarioView.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/view/LoginView.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Client/src/it/uniroma2/dicii/bd/view/ResponsabileView.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/controller/AgenziaController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/controller/AmministratoreController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/controller/ApplicationController$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/controller/ApplicationController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/controller/Controller.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/controller/LoginController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/exception/DAOException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/dao/BookingListProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/dao/ConnectionFactory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/dao/GenericProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/dao/LoginProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/domain/BookingFlight.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/domain/BookingList.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/domain/Credentials.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/domain/Passenger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/model/domain/Role.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/view/AgenziaView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Biblioteca_Progetto/it/uniroma2/dicii/bd/view/LoginView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/controller/AmministratoreController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/controller/ApplicationController$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/controller/ApplicationController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/controller/BibliotecarioController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/controller/Controller.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/controller/LoginController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/controller/ResponsabileController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/exception/DAOException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/dao/ConnectionFactory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/dao/CopieDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/dao/GenericProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/dao/LibroDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/dao/LoginProcedureDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/dao/PrestitoUtenteDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/dao/TrasferimentoDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/dao/UtenteDAO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/BookingFlight.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/BookingList.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/Copia.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/Credentials.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/Libro.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/Passenger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/PrestitoUtente.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/Role.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/StampaResultSet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/Trasferimento.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/model/domain/Utente.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/view/AmministratoreView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/view/BibliotecarioView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/view/LoginView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/progress/it/uniroma2/dicii/bd/view/ResponsabileView.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/progress.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/schema.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../secondo_test_generazione_schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/../secondo_test_generazione_schema.sql" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="3IPanFKT8OGos8KNE7j0H2cW5Ph" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/ain20/Desktop/CORSI/BASI DI DATI/Basi di Dati_pratica/Biblioteca/Biblioteca",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" singleton="false">
+      <option name="MAIN_CLASS_NAME" value="it.uniroma2.dicii.bd.Main" />
+      <module name="progress" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Client" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.31033.145" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="74ec20e9-034f-42c3-b784-996f3687bd5f" name="Changes" comment="" />
+      <created>1787668822793</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1787668822793</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.io.FileNotFoundException" package="java.io" />
+          <option name="timeStamp" value="2" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

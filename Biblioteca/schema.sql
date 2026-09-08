@@ -1087,6 +1087,14 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
+-- Indexes
+-- -----------------------------------------------------
+CREATE INDEX idx_prestiti_attivi ON PrestitoUtente(DataRestituzione);
+CREATE INDEX idx_copia_disponibile ON Copia(CodiceLibro, Stato);
+CREATE INDEX idx_libro_dismissione ON Libro(Dismissione, DataImmissione);
+CREATE INDEX idx_data_prestito ON PrestitoUtente(DataPrestito);
+
+-- -----------------------------------------------------
 -- Users and privileges
 -- -----------------------------------------------------
 
