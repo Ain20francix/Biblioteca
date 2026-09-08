@@ -188,13 +188,21 @@ DELIMITER $$
 USE `biblioteca`$$
 CREATE PROCEDURE `inserisciUtente` (in var_CF CHAR(16),in var_Nome CHAR(30),in var_Cognome CHAR(30),in var_Sesso ENUM ('Uomo','Donna','Non binario','Preferisco non specificare'),in var_DataNascita DATE,IN var_LuogoNascita CHAR(40),in var_Residenza CHAR(40),in var_MezzoPreferito ENUM ('Email','Cellulare','Telefono di casa'),in var_contatto CHAR(100))
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    START TRANSACTION;
     -- registrazione utente
     INSERT INTO `Utente` (`CF`, `Nome`, `Cognome`, `Sesso`, `DataNascita`, `LuogoNascita`, `Residenza`,`MezzoPreferito`) VALUES (var_CF, var_Nome, var_Cognome, var_Sesso, var_DataNascita, var_LuogoNascita, var_Residenza, var_MezzoPreferito);
 
     -- Registrazione contatto
     INSERT INTO `Contatto`(`Tipo`, `Valore`, `Utente`) VALUES (var_MezzoPreferito,var_contatto,var_CF);
 
-
+    COMMIT;
 
 END$$
 
@@ -204,9 +212,6 @@ DELIMITER ;
 -- procedure registraPrestitoUtente
 -- -----------------------------------------------------
 
-
--- bisogna restituire al termine della procedure tramite dei parametri out la posizione della copia e poi mettere tale posizione a NULL
-
 USE `biblioteca`;
 DROP procedure IF EXISTS `biblioteca`.`registraPrestitoUtente`;
 
@@ -215,6 +220,16 @@ USE `biblioteca`$$
 
 CREATE PROCEDURE `registraPrestitoUtente` (in var_Copia CHAR(4),in var_DataPrestito DATE,in var_Utente CHAR(16),in var_DurataConsultazioneEspressa ENUM ('1','2','3'),out var_NumeroRipiano TINYINT,out var_NumeroScaffale TINYINT)
 BEGIN
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    START TRANSACTION;
+
     INSERT INTO `PrestitoUtente`(`Copia`, `DataPrestito`, `Utente`, `DataRestituzione`, `DurataConsultazioneEspressa`) VALUES (var_Copia,var_DataPrestito,var_Utente,NULL,var_DurataConsultazioneEspressa);
 
     -- seleziono il ripiano e lo scaffale di dove si trova la copia per restituirla al bibliotecario
@@ -224,6 +239,9 @@ BEGIN
     -- poi aggiorniamo lo stato della relativa copia e impostiamo la posizione a NULL
 
     UPDATE `Copia` SET `Stato`='Prestata',`NumeroRipiano`=NULL,`NumeroScaffale`=NULL WHERE `Etichetta`= var_Copia;
+
+    COMMIT;
+
 END$$
 
 DELIMITER ;
@@ -239,10 +257,23 @@ DELIMITER $$
 
 CREATE PROCEDURE `restituzioneCopiaUtente` (in var_Copia CHAR(4),in var_DataRestituzione DATE)
 BEGIN
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     UPDATE `PrestitoUtente` SET `DataRestituzione` = var_DataRestituzione WHERE `Copia` = var_Copia AND `DataRestituzione` IS NULL;
 
     -- poi aggiorno lo stato della copia per renderla disponibile
     UPDATE `Copia` SET `Stato` = 'Disponibile' WHERE `Etichetta` = var_Copia;
+
+    COMMIT;
+
 END$$
 
 DELIMITER ;
@@ -259,7 +290,18 @@ DELIMITER $$
 CREATE PROCEDURE `inserisciCopia` (in var_Etichetta CHAR(4),in var_CodiceLibro CHAR(17),in var_NumeroRipiano TINYINT,in var_NumeroScaffale TINYINT)
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     INSERT INTO `Copia`(`Etichetta`, `CodiceLibro`, `Stato`, `NumeroRipiano`, `NumeroScaffale`) VALUES (var_Etichetta,var_CodiceLibro,'Disponibile',var_NumeroRipiano,var_NumeroScaffale);
+
+    COMMIT;
 
 END$$
 
@@ -277,6 +319,15 @@ DELIMITER $$
 CREATE PROCEDURE `inserisciLibro` (in var_ISBN CHAR(17),in var_Titolo CHAR(50),in var_CaseEditrice CHAR(40),in var_dataImmissione DATE,in var_Genere ENUM ('Arte e Fotografia','Autobiografia','Avventura','Azione','Bambini e Ragazzi','Biografia','Classici','Cucina e Gastronomia','Diritto','Economia e Finanza','Fantascienza','Fantasy','Filosofia','Fumetti e Graphic Novel','Giallo','Hobbistica e Tempo libero','Horror','Informatica e Tecnologia','Medicina e Salute','Narrativa Contemporanea','Poesia','Psicologia','Religione e Spiritualità','Romanzo di Formazione','Romanzo Rosa','Romanzo Storico','Saggistica','Scienze','Self-help e Crescita Personale','Storia','Teatro','Thriller','Umoristico','Viaggi'),in var_NomeAutore CHAR(30),in var_CognomeAutore CHAR(30))
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     -- inserimento dati libro
 
     INSERT INTO `Libro`(`ISBN`, `Titolo`, `CasaEditrice`, `DataImmissione`, `Genere`) VALUES (var_ISBN,var_Titolo,var_CaseEditrice,var_dataImmissione,var_Genere);
@@ -288,6 +339,8 @@ BEGIN
     END IF;
 
     INSERT INTO `HaScritto`(`CodiceLibro`, `NomeAutore`, `CognomeAutore`) VALUES (var_ISBN,var_NomeAutore,var_CognomeAutore);
+
+    COMMIT;
 
 END$$
 
@@ -308,19 +361,28 @@ BEGIN
     DECLARE var_stato_copia CHAR(30);
     DECLARE var_Biblioteca_origine CHAR(100);
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    START TRANSACTION;
+
     -- controllo che la biblioteca di destinazione non sia la stessa che ha prestato la copia
     SELECT `Biblioteca` INTO var_Biblioteca_origine FROM `Trasferimenti` WHERE `Copia`=var_Copia AND `Stato`='Prestata da';
 
 
     IF var_Biblioteca = var_Biblioteca_origine THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: la biblioteca di destinazione risulta la medesima dalla quale proviene la copia che si sta cercando di trasferire.';
+        SET MESSAGE_TEXT = 'Errore: la biblioteca di destinazione risulta la medesima dalla quale proviene la copia che si sta cercando di trasferire.';
     END IF;
 
     -- controllo che la copia da trasferire esista e non sia stata dismessa
     IF NOT EXISTS (SELECT 1 FROM `Copia`,`Libro` WHERE `Etichetta` = var_Copia AND `Copia`.`CodiceLibro` AND `Libro`.`Dismissione`=FALSE) THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: la copia non esiste.';
+        SET MESSAGE_TEXT = 'Errore: la copia non esiste.';
     END IF;
 
     -- aggiornamento stato copia
@@ -329,17 +391,19 @@ BEGIN
             SELECT `Stato` INTO var_stato_copia FROM `Copia` WHERE `Etichetta` = var_Copia;
             IF var_stato_copia != 'Disponibile' THEN
                 SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'Errore Trigger: copia non disponibile per il trasferimento.';
+                SET MESSAGE_TEXT = 'Errore: copia non disponibile per il trasferimento.';
             END IF;
 
             UPDATE `Copia` SET `Stato` = 'Prestata',`NumeroRipiano`= NULL,`NumeroScaffale`= NULL WHERE `Etichetta` = var_Copia;
     ELSEIF var_Stato != 'Prestata da' THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Errore Trigger: tipo di trasferimento non supportato.';
+            SET MESSAGE_TEXT = 'Errore: tipo di trasferimento non supportato.';
     END IF;
 
     -- registrazione trasferimento
     INSERT INTO `Trasferimenti`(`Copia`, `DataCessione`, `Biblioteca`, `DataRestituzione`, `Stato`) VALUES (var_Copia,var_DataCessione,var_Biblioteca,NULL,var_Stato);
+
+    COMMIT;
 
 END$$
 
@@ -371,14 +435,23 @@ BEGIN
     DECLARE var_StatoPrestito VARCHAR(20);
     DECLARE done INT DEFAULT FALSE;
 
-
     DECLARE cur_prestiti CURSOR FOR
         SELECT P.Copia, U.CF, U.Nome, U.Cognome, C.Tipo, C.Valore,P.DataPrestito, P.DurataConsultazioneEspressa
         FROM `PrestitoUtente` P JOIN `Utente` U ON P.Utente = U.CF JOIN `Contatto` C ON U.CF = C.Utente
         WHERE P.DataRestituzione IS NULL;
 
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
     -- Handler per uscire dal ciclo quando finiscono le righe
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
 
     -- Tabella temporanea per restituire il ResultSet
     DROP TEMPORARY TABLE IF EXISTS `TempReportNonRestituiti`;
@@ -422,23 +495,11 @@ BEGIN
 
     DROP TEMPORARY TABLE IF EXISTS `TempReportNonRestituiti`;
 
+    COMMIT;
+
 END$$
 
 DELIMITER ;
-
-/*USE `biblioteca`;
-DROP PROCEDURE IF EXISTS `reportCopieNonRestituite`;
-
-DELIMITER $$
-
-CREATE PROCEDURE `reportCopieNonRestituite` ()
-BEGIN
-
-    SELECT `PrestitoUtente`.`Copia`,Utente.CF,Utente.Nome,Utente.Cognome,Contatto.Tipo,Contatto.Valore FROM `PrestitoUtente`,Utente,Contatto WHERE PrestitoUtente.Utente=Utente.CF AND Utente.CF=Contatto.Utente AND PrestitoUtente.DataRestituzione IS NULL;
-
-END$$
-
-DELIMITER ;*/
 
 -- -----------------------------------------------------
 -- procedure reportCopieTrasferite
@@ -452,7 +513,18 @@ DELIMITER $$
 CREATE PROCEDURE `reportCopieTrasferite` ()
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     SELECT Trasferimenti.Copia,Trasferimenti.DataCessione,COALESCE(Trasferimenti.DataRestituzione,'Non restituita') as DataRestituzione,Trasferimenti.Stato,Biblioteca.Indirizzo,Biblioteca.Indirizzo FROM `Trasferimenti`,Biblioteca WHERE Trasferimenti.Biblioteca=Biblioteca.Indirizzo;
+
+    COMMIT;
 
 END$$
 
@@ -470,7 +542,16 @@ DELIMITER $$
 CREATE PROCEDURE `restituzioneCopiaTrasferita` (in var_Copia CHAR(4), in var_DataRestituzione DATE, in var_Stato ENUM('Prestata a','Prestata da'))
 BEGIN
 
-    -- controlliamo che la copia sia effettivamente stata prestata ad/da una biblitoeca esterna
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
+    -- controlliamo che la copia sia effettivamente stata prestata ad/da una biblioteca esterna
     IF NOT EXISTS (SELECT 1 FROM `Trasferimenti` WHERE `Trasferimenti`.`Copia`=var_Copia AND `Trasferimenti`.`Stato`=var_Stato) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Errore Trigger: non esiste un trasferimento relativo a tale copia.';
@@ -494,6 +575,7 @@ BEGIN
         UPDATE `Copia` SET `Stato`='Prestata' WHERE `Etichetta`=var_Copia; -- copia restituita alla biblioteca di appartenenza
     END IF;
 
+    COMMIT;
 
 END$$
 
@@ -511,10 +593,20 @@ DELIMITER $$
 CREATE PROCEDURE `cercaCopia` (in var_ISBN CHAR(17))
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     -- controlliamo che esista una copia disponibile del libro richiesto
 
     SELECT `Etichetta`,COALESCE(`NumeroRipiano`,'Non Disponibile') AS NumeroRipiano,COALESCE(`NumeroScaffale`,'Non Disponibile') AS NumeroScaffale FROM `Copia`,`Libro` WHERE `Copia`.`CodiceLibro`=`Libro`.`ISBN` AND `Libro`.`Dismissione`=FALSE AND Stato='Disponibile' AND Copia.CodiceLibro=var_ISBN;
 
+    COMMIT;
 
 END$$
 
@@ -532,6 +624,15 @@ DELIMITER $$
 CREATE PROCEDURE `cambiaPosizione` (in var_Copia CHAR(4), in var_NumeroRipiano TINYINT,in var_NumeroScaffale TINYINT)
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    START TRANSACTION;
+
     -- una copia anche se dismessa bisogna permettere di spostarla di posizione in quanto permane nella biblioteca
 
     -- controlliamo che la copia sia esistente e disponibile
@@ -543,6 +644,7 @@ BEGIN
     -- aggiorniamo la posizione della copia nella biblioteca
     UPDATE `Copia` SET `NumeroRipiano`=var_NumeroRipiano,`NumeroScaffale`=var_NumeroScaffale WHERE `Etichetta`=var_Copia;
 
+    COMMIT;
 
 END$$
 
@@ -560,12 +662,22 @@ DELIMITER $$
 CREATE PROCEDURE `dismissione` ()
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     -- escludo i libri che magari sono appena stati immessi nel sistema
 
     UPDATE `Libro` SET `Dismissione` = TRUE WHERE `Dismissione` = FALSE AND `DataImmissione` <= DATE_SUB(CURDATE(), INTERVAL 10 YEAR) AND `ISBN` NOT IN (
           -- seleziono i libri che hanno avuto almeno un prestito negli ultimi 10 anni
           SELECT C.CodiceLibro FROM `PrestitoUtente` P, `Copia` C WHERE P.Copia = C.Etichetta AND P.DataPrestito >= DATE_SUB(CURDATE(), INTERVAL 10 YEAR));
 
+    COMMIT;
 
 END$$
 
@@ -583,7 +695,18 @@ DELIMITER $$
 CREATE PROCEDURE `listaCopie` ()
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     SELECT * FROM `Copia`,`Libro` WHERE `Copia`.`CodiceLibro`=`Libro`.`ISBN` AND `Libro`.`Dismissione`=FALSE;
+
+    COMMIT;
 
 END$$
 
@@ -601,7 +724,18 @@ DELIMITER $$
 CREATE PROCEDURE `listaUtenti` ()
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     SELECT * FROM `Utente`;
+
+    COMMIT;
 
 END$$
 
@@ -619,7 +753,18 @@ DELIMITER $$
 CREATE PROCEDURE `listaLibri` ()
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     SELECT * FROM `Libro`;
+
+    COMMIT;
 
 END$$
 
@@ -637,7 +782,18 @@ DELIMITER $$
 CREATE PROCEDURE `listaBiblioteche` ()
 BEGIN
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+
     SELECT `Indirizzo`, `Nome` FROM `Biblioteca`;
+
+    COMMIT;
 
 END$$
 
@@ -889,32 +1045,6 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- Trigger per cambiaPosizione
--- -----------------------------------------------------
-
-/*USE `biblioteca`;
-DROP TRIGGER IF EXISTS `biblioteca`.`before_cambiaPosizione`;
-
-DELIMITER $$
-
-CREATE TRIGGER `biblioteca`.`before_cambiaPosizione` BEFORE UPDATE ON `Copia` FOR EACH ROW
-BEGIN
-
-    DECLARE var_Stato ENUM('Disponibile','Prestata');
-
-    SELECT `Stato` INTO var_Stato FROM `Copia` WHERE `Etichetta`=NEW.`Etichetta`;
-
-    -- controlliamo che la copia di cui si voglia cambiare la posizione non sia in prestito/trasferita
-    IF var_Stato != 'Disponibile' THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: la copia risulta prestata/trasferita';
-    END IF;
-
-END$$
-
-DELIMITER ;*/
-
--- -----------------------------------------------------
 -- Trigger per regole aziendali
 -- -----------------------------------------------------
 
@@ -935,11 +1065,11 @@ BEGIN
 
     -- controlliamo che l'utente non stia cercando di prendere nello stesso giorno una quarta copia di uno stesso libro'
 
-    SELECT COUNT(*) INTO var_numeroCopie FROM `PrestitoUtente`,Copia,Libro WHERE PrestitoUtente.Copia=Copia.Etichetta AND Copia.CodiceLibro=Libro.ISBN AND Copia.CodiceLibro=var_CodiceLibro AND PrestitoUtente.DataPrestito=NEW.DataPrestito GROUP BY PrestitoUtente.DataPrestito;
+    SELECT COUNT(*) INTO var_numeroCopie FROM `PrestitoUtente`,Copia,Libro WHERE PrestitoUtente.Copia=Copia.Etichetta AND Copia.CodiceLibro=Libro.ISBN AND Copia.CodiceLibro=var_CodiceLibro AND PrestitoUtente.Utente=NEW.Utente AND PrestitoUtente.DataRestituzione IS NULL;
 
-    IF var_numeroCopie=3 THEN
+    IF var_numeroCopie>0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Errore Trigger: si sta cercando di effettuare un prestito di una quarta copia dello stesso libro.';
+        SET MESSAGE_TEXT = 'Errore Trigger: si sta cercando di effettuare un prestito di una seconda copia dello stesso libro per lo stesso utente, deve restituire la precedente.';
     END IF;
 
 END$$
@@ -998,18 +1128,6 @@ GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'responsab
 GRANT EXECUTE ON procedure `biblioteca`.`reportCopieTrasferite` TO 'responsabile'@'localhost';
 
 -- permessi amministratore
-GRANT EXECUTE ON procedure `biblioteca`.`inserisciUtente` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`registraPrestitoUtente` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaUtente` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`inserisciCopia` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`trasferimentoCopia` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`listaCopie` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`listaUtenti` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`listaLibri` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`restituzioneCopiaTrasferita` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`inserisciLibro` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`reportCopieNonRestituite` TO 'amministratore'@'localhost';
-GRANT EXECUTE ON procedure `biblioteca`.`listaBiblioteche` TO 'amministratore'@'localhost';
 GRANT EXECUTE ON procedure `biblioteca`.`dismissione` TO 'amministratore'@'localhost';
 
 

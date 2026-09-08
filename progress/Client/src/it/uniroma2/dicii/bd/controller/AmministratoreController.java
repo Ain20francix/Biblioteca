@@ -22,9 +22,6 @@ public class AmministratoreController implements Controller {
                 throw new RuntimeException(e);
             }
 
-            ResponsabileController r = new ResponsabileController();
-            BibliotecarioController b = new BibliotecarioController();
-
             while(true) {
                 int choice;
                 try {
@@ -33,17 +30,6 @@ public class AmministratoreController implements Controller {
                     throw new RuntimeException(e);
                 }
                 switch(choice) {
-                    /*case 1 -> b.registraUtente();
-                    case 2 -> b.registraPrestitoUtente();
-                    case 3 -> b.restituzioneCopia();
-                    case 4 -> r.reportCopieNonRestituite();
-                    case 5 -> b.inserisciCopia();
-                    case 6 -> r.inserisciLibro();
-                    case 7 -> b.trasferimentoCopia();
-                    case 8 -> b.restituzioneCopiaTrasferita();
-                    case 9 -> stampaListaCopie();
-                    case 10 -> stampaListaLibri();
-                    case 11 -> stampaListaUtenti();*/
                     case 1 -> dismissione();
                     case 2 -> System.exit(0);
                     default -> throw new RuntimeException("Opzione invalida");
@@ -82,7 +68,7 @@ public class AmministratoreController implements Controller {
                 new CopieDAO().dismissione();
                 System.out.println("Dismissione copie di libri non prestati da più di 10 anni, avvenuta con successo!");
             }catch(DAOException e) {
-                System.out.println("Dismissione libri, non completata con usccesso: \n"+e.getMessage());
+                System.out.println("Dismissione libri, non completata con successo: \n"+e.getMessage());
             }
         }
 

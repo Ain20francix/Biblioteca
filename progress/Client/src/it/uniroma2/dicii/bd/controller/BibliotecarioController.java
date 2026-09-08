@@ -81,15 +81,6 @@ public class BibliotecarioController  implements Controller{
         }
     }
 
-    public void stampaListaCopie(){
-        try{
-            new CopieDAO().listaCopie();
-        }catch(DAOException e) {
-            System.out.println("Stampa lista copie non completata con successo\n");
-        }
-
-    } //vedere se può essere riutilizzato
-
     public void stampaListaUtenti(){
         try{
             new UtenteDAO().listaUtenti();
